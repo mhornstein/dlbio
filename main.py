@@ -79,5 +79,10 @@ if __name__ == '__main__':
     samples = encode_sequence_list(positive_samples + negative_samples, ENCODING)
     labels = np.array(positive_labels + negative_labels).reshape(-1, 1)
 
-    print(samples.shape, labels.shape)
+    # shuffling the data
+    index = np.arange(samples.shape[0]) # Create an index array and shuffle it
+    np.random.shuffle(index)
+
+    samples = samples[index]
+    labels = labels[index]
 
