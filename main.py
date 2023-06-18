@@ -8,6 +8,11 @@ SET_SIZE = 100
 MAX_SAMPLE_LENGTH = 41
 PADDING_CHAR = 'N'
 
+ENCODING = {'A': np.array([1, 0, 0, 0]), 'G': np.array([0, 1, 0, 0]),
+            'C': np.array([0, 0, 1, 0]), 'U': np.array([0, 0, 0, 1]),
+            'T': np.array([0, 0, 0, 1]),
+            'N': np.array([0.25] * 4)}
+
 def load_rna_compete(rna_compete_filename):
     seqs = []
     with open(rna_compete_filename) as f:
@@ -56,6 +61,10 @@ def shuffle_samples(samples):
     shuffled_seqs = [''.join(np.random.permutation(list(seq))) for seq in samples]
     return shuffled_seqs
 
+def encode_sequence_list(sequence_list, encoding):
+    encoded_sequences = [np.array([encoding[base] for base in sequence]) for sequence in sequence_list]
+    return np.array(encoded_sequences)
+
 if __name__ == '__main__':
     rna_compete_filename = sys.argv[1]
     rna_compete_sequences = load_rna_compete(rna_compete_filename)
@@ -63,3 +72,12 @@ if __name__ == '__main__':
     rbns_files = sys.argv[2:]
     positive_samples = create_positive_dataset(MODE, rbns_files, SET_SIZE, MAX_SAMPLE_LENGTH, PADDING_CHAR)
     negative_samples = shuffle_samples(positive_samples)
+
+    positive_labels = [1] * len(positive_samples)
+    negative_labels = [0] * len(positive_samples)
+
+    samples = encode_sequence_list(positive_samples + negative_samples, ENCODING)
+    labels = np.array(positive_labels + negative_labels).reshape(-1, 1)
+
+    print(samples.shape, labels.shape)
+
