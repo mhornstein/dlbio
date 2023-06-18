@@ -5,6 +5,8 @@ import numpy as np
 
 MODE = 'WEIGHTED_HIGH' # 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'
 SET_SIZE = 100
+MAX_SAMPLE_LENGTH = 41
+PADDING_CHAR = 'N'
 
 def load_rna_compete(rna_compete_filename):
     seqs = []
@@ -21,7 +23,7 @@ def get_file_number(file_path):
         numeric_value = re.search(r'_(\d+)n', file_name).group(1)
         return int(numeric_value)
 
-def read_samples(file_path, num_of_samples):
+def read_samples(file_path, num_of_samples, max_sample_length, padding_char):
     lines = []
     count = 0
     with open(file_path, 'r') as f:
@@ -29,11 +31,12 @@ def read_samples(file_path, num_of_samples):
             if count >= num_of_samples:
                 break
             seq = line.strip().split()[0]
+            seq = seq[:max_sample_length] if len(seq) > max_sample_length else seq.ljust(max_sample_length, padding_char)
             lines.append(seq)
             count += 1
     return lines
 
-def create_porisive_dataset(mode, files, set_size):
+def create_positive_dataset(mode, files, set_size, max_sample_length, padding_char):
     dataset = []
     filesnames = sorted(files, key=get_file_number)
     total_consentrations = sum([get_file_number(file_path) for file_path in files])
@@ -42,7 +45,7 @@ def create_porisive_dataset(mode, files, set_size):
             consentration = get_file_number(filename)
             percentage = consentration / total_consentrations
             num_of_samples = set_size * percentage
-            lines = read_samples(filename, num_of_samples)
+            lines = read_samples(filename, num_of_samples, max_sample_length, padding_char)
             dataset += lines
     else:
         raise ValueError(f'Unknown mode: {mode}')
@@ -59,5 +62,5 @@ if __name__ == '__main__':
     rna_compete_sequences = load_rna_compete(rna_compete_filename)
     
     rbns_files = sys.argv[2:]
-    positive_samples = create_porisive_dataset(MODE, rbns_files, SET_SIZE)
+    positive_samples = create_positive_dataset(MODE, rbns_files, SET_SIZE, MAX_SAMPLE_LENGTH, PADDING_CHAR)
     negative_samples = shuffle_samples(positive_samples)
