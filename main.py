@@ -46,6 +46,8 @@ def create_porisive_dataset(mode, files, set_size):
             dataset += lines
     else:
         raise ValueError(f'Unknown mode: {mode}')
+    
+    np.random.shuffle(dataset)
     return dataset
 
 def shuffle_samples(samples):
