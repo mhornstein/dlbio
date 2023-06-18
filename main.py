@@ -1,6 +1,7 @@
 import sys
 import re
 import os
+import numpy as np
 
 MODE = 'WEIGHTED_HIGH' # 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'
 SET_SIZE = 100
@@ -47,10 +48,14 @@ def create_porisive_dataset(mode, files, set_size):
         raise ValueError(f'Unknown mode: {mode}')
     return dataset
 
+def shuffle_samples(samples):
+    shuffled_seqs = [''.join(np.random.permutation(list(seq))) for seq in samples]
+    return shuffled_seqs
+
 if __name__ == '__main__':
     rna_compete_filename = sys.argv[1]
     rna_compete_sequences = load_rna_compete(rna_compete_filename)
     
     rbns_files = sys.argv[2:]
     positive_samples = create_porisive_dataset(MODE, rbns_files, SET_SIZE)
-    # negative_samples = shuffle_samples(positive_samples)
+    negative_samples = shuffle_samples(positive_samples)
