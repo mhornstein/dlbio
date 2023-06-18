@@ -2,11 +2,20 @@ import sys
 import re
 import os
 import numpy as np
+from keras.models import Model
+from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, ZeroPadding2D
+from keras.optimizers import Adam
+from keras.losses import BinaryCrossentropy
+from keras.metrics import BinaryAccuracy
 
 MODE = 'WEIGHTED_HIGH' # 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'
 SET_SIZE = 100
 MAX_SAMPLE_LENGTH = 41
 PADDING_CHAR = 'N'
+FILTERS = 32
+KERNEL_SIZE = (8, 4)
+POOL_SIZE = (2,2)
+HIDDEN_LAYERS_DIMS = [128, 64, 1]
 
 ENCODING = {'A': np.array([1, 0, 0, 0]), 'G': np.array([0, 1, 0, 0]),
             'C': np.array([0, 0, 1, 0]), 'U': np.array([0, 0, 0, 1]),
@@ -65,6 +74,25 @@ def encode_sequence_list(sequence_list, encoding):
     encoded_sequences = [np.array([encoding[base] for base in sequence]) for sequence in sequence_list]
     return np.array(encoded_sequences)
 
+def create_model(input_shape, filters, kernel_size, pool_size, hidden_layers_dims):
+    padding_shape = (kernel_size[0] - 1, kernel_size[1])
+
+    input_layer = Input(shape=input_shape)
+    input_layer_padded = ZeroPadding2D(padding=padding_shape)(input_layer)
+    conv_layer = Conv2D(filters=filters, kernel_size=kernel_size, activation='relu')(input_layer_padded)
+    max_pool_layer = MaxPooling2D(pool_size=pool_size)(conv_layer)
+    flatten_layer = Flatten()(max_pool_layer)
+
+    last_layer = flatten_layer
+    for dim in hidden_layers_dims[:-1]:
+        last_layer = Dense(dim, activation='relu')(last_layer)
+    output_layer = Dense(1, activation='sigmoid')(last_layer)
+
+    model = Model(inputs=input_layer, outputs=output_layer)
+    model.compile(optimizer=Adam(), loss=BinaryCrossentropy(), metrics=[BinaryAccuracy()])
+
+    return model
+
 if __name__ == '__main__':
     rna_compete_filename = sys.argv[1]
     rna_compete_sequences = load_rna_compete(rna_compete_filename)
@@ -85,4 +113,8 @@ if __name__ == '__main__':
 
     samples = samples[index]
     labels = labels[index]
+
+    model = create_model(input_shape=samples.shape[1:], filters=FILTERS,
+                         kernel_size=KERNEL_SIZE, pool_size=POOL_SIZE, hidden_layers_dims=HIDDEN_LAYERS_DIMS)
+    print(f'Model details:\n{model.summary()}')
 
