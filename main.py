@@ -49,8 +49,7 @@ def create_positive_dataset(mode, files, set_size, max_sample_length, padding_ch
             dataset += lines
     else:
         raise ValueError(f'Unknown mode: {mode}')
-    
-    np.random.shuffle(dataset)
+
     return dataset
 
 def shuffle_samples(samples):
