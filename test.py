@@ -15,7 +15,7 @@ ENCODING = {'A': torch.tensor([1, 0, 0, 0]),
 MAX_LENGTH = 40
 
 class ConvNet(nn.Module):
-    def __init__(self, pooling_size, dropout_rate):
+    def __init__(self,hidden_layers, pooling_size, dropout_rate):
         super(ConvNet, self).__init__()
         self.pooling_size = pooling_size
         self.dropout_rate = dropout_rate
@@ -23,8 +23,15 @@ class ConvNet(nn.Module):
         self.conv2 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=7, stride=1, padding=3)
         self.conv3 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=9, stride=1, padding=4)
         self.dropout = nn.Dropout(self.dropout_rate)
-        self.fc1 = nn.Linear(32 * 3 * MAX_LENGTH // pooling_size, 64)
-        self.fc2 = nn.Linear(64, 1)
+
+        self.hidden_layers = nn.ModuleList()
+        input_dim = 32 * 3 * MAX_LENGTH // pooling_size
+        for hl_dim in hidden_layers:
+            self.hidden_layers.append(nn.Linear(input_dim, hl_dim))
+            input_dim = hl_dim
+
+        self.fc_out = nn.Linear(input_dim, 1)
+
 
     def forward(self, x):
         x1 = F.relu(self.conv1(x))
@@ -39,9 +46,12 @@ class ConvNet(nn.Module):
         x = torch.cat((x1, x2, x3), dim=-1)
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
-        x = F.relu(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
-        return x.squeeze() # squeeze is used to remove the extra dimension from the output
+        for hidden_layer in self.hidden_layers:
+            x = F.relu(hidden_layer(x))
+            x = self.dropout(x)
+
+        x = torch.sigmoid(self.fc_out(x))
+        return x.squeeze()
 
 def encode_and_pad(seq_list):
     encoded_seqs = []
@@ -89,7 +99,7 @@ X = ['AGCTUUAGCTN', 'GTACGTAGCTN', 'TGTACGTAGCT', 'CGTACGTAGCT']
 y = [0, 1, 0, 1]
 
 # Initialize the network
-model = ConvNet(pooling_size=5, dropout_rate = 0.2)
+model = ConvNet(hidden_layers = [32, 64], pooling_size=5, dropout_rate = 0.2)
 
 # Train the network
 split_and_train(X, y, model, learning_rate= 0.01, num_epochs=10 )
