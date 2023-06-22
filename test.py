@@ -41,11 +41,15 @@ class ConvNet(nn.Module):
         x = torch.sigmoid(self.fc2(x))
         return x.squeeze() # squeeze is used to remove the extra dimension from the output
 
-def encode_and_pad(seq):
-    encoded_seq = [ENCODING[ch] for ch in seq]
-    while len(encoded_seq) < MAX_LENGTH:
-        encoded_seq.append(ENCODING['N'])
-    return torch.stack(encoded_seq)[:MAX_LENGTH].t().unsqueeze(0)
+def encode_and_pad(seq_list):
+    encoded_seqs = []
+    for seq in seq_list:
+        encoded_seq = [ENCODING[ch] for ch in seq]
+        while len(encoded_seq) < MAX_LENGTH:
+            encoded_seq.append(ENCODING['N'])
+        encoded_seqs.append(torch.stack(encoded_seq)[:MAX_LENGTH].t())
+    return torch.stack(encoded_seqs)  # We stack the list to create a single tensor
+
 
 def calculate_accuracy(y_true, y_pred):
     y_pred_tag = torch.round(y_pred)
