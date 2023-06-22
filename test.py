@@ -58,10 +58,10 @@ def calculate_accuracy(y_true, y_pred):
     correct_results_sum = (y_pred_tag == y_true).sum().float()
     return correct_results_sum/y_true.shape[0]
 
-def split_and_train(X, y, model, num_epochs=10):
+def split_and_train(X, y, model, learning_rate, num_epochs=10 ):
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.5, random_state=42)
     loss_function = nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
     for epoch in range(num_epochs):
         model.train()
@@ -92,4 +92,4 @@ y = [0, 1, 0, 1]
 model = ConvNet(pooling_size=5, dropout_rate = 0.2)
 
 # Train the network
-split_and_train(X, y, model, num_epochs=10 )
+split_and_train(X, y, model, learning_rate= 0.01, num_epochs=10 )
