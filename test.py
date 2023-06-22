@@ -17,11 +17,11 @@ MAX_LENGTH = 40
 class ConvNet(nn.Module):
     def __init__(self):
         super(ConvNet, self).__init__()
-        self.conv1 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=6, stride=1, padding=2)
-        self.conv3 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=9, stride=1, padding=3)
+        self.conv1 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=5, stride=1, padding=2)
+        self.conv2 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=7, stride=1, padding=3)
+        self.conv3 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=9, stride=1, padding=4)
         self.dropout = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(32 * 3 * MAX_LENGTH, 64)
+        self.fc1 = nn.Linear(32 * 3 * MAX_LENGTH // 2, 64)
         self.fc2 = nn.Linear(64, 1)
 
     def forward(self, x):
@@ -34,7 +34,7 @@ class ConvNet(nn.Module):
         x3 = F.relu(self.conv3(x))
         x3 = F.max_pool1d(x3, 2)
 
-        x = torch.cat((x1, x2, x3), dim=1)
+        x = torch.cat((x1, x2, x3), dim=-1)
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
         x = F.relu(self.fc1(x))
@@ -57,7 +57,7 @@ def calculate_accuracy(y_true, y_pred):
     return correct_results_sum/y_true.shape[0]
 
 def split_and_train(X, y, model, num_epochs=10):
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.5, random_state=42)
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters())
     
