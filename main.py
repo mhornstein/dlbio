@@ -67,7 +67,7 @@ class ConvNet(nn.Module):
             x = self.dropout(x)
 
         x = torch.sigmoid(self.fc_out(x))
-        return x.squeeze()
+        return x
 
 
 def load_rna_compete(rna_compete_filename):
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     negative_labels = [0] * len(negative_samples)
 
     samples = encode_sequence_list(positive_samples + negative_samples, ENCODING)
-    labels = np.array(positive_labels + negative_labels).reshape(-1, 1)
+    labels = torch.FloatTensor(positive_labels + negative_labels).reshape(-1, 1)
 
     # shuffling the data
     index = np.arange(samples.shape[0]) # Create an index array and shuffle it
