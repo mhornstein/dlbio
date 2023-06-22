@@ -15,13 +15,14 @@ ENCODING = {'A': torch.tensor([1, 0, 0, 0]),
 MAX_LENGTH = 40
 
 class ConvNet(nn.Module):
-    def __init__(self, pooling_size):
+    def __init__(self, pooling_size, dropout_rate):
         super(ConvNet, self).__init__()
         self.pooling_size = pooling_size
+        self.dropout_rate = dropout_rate
         self.conv1 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=5, stride=1, padding=2)
         self.conv2 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=7, stride=1, padding=3)
         self.conv3 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=9, stride=1, padding=4)
-        self.dropout = nn.Dropout(0.5)
+        self.dropout = nn.Dropout(self.dropout_rate)
         self.fc1 = nn.Linear(32 * 3 * MAX_LENGTH // pooling_size, 64)
         self.fc2 = nn.Linear(64, 1)
 
@@ -88,7 +89,7 @@ X = ['AGCTUUAGCTN', 'GTACGTAGCTN', 'TGTACGTAGCT', 'CGTACGTAGCT']
 y = [0, 1, 0, 1]
 
 # Initialize the network
-model = ConvNet(pooling_size=5)
+model = ConvNet(pooling_size=5, dropout_rate = 0.2)
 
 # Train the network
-split_and_train(X, y, model, num_epochs=10)
+split_and_train(X, y, model, num_epochs=10 )
