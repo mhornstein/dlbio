@@ -109,6 +109,9 @@ def create_positive_dataset(files, mode, set_size):
             num_of_samples = set_size * percentage
             lines = read_samples(filename, num_of_samples)
             dataset += lines
+    elif mode == 'HIGH':
+        filename = filesnames[-1]
+        dataset = read_samples(filename, set_size)
     else:
         raise ValueError(f'Unknown mode: {mode}')
 
