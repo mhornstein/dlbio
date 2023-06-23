@@ -1,7 +1,7 @@
 import sys
 import re
 import os
-import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
 from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, ZeroPadding2D
 from keras.optimizers import Adam
@@ -21,6 +21,7 @@ FILTERS = 32
 KERNEL_SIZE = (8, 4)
 POOL_SIZE = (2,2)
 HIDDEN_LAYERS_DIMS = [128, 64, 1]
+BATCH_SIZE = 64
 
 # Encoding and sequence length constants
 ENCODING = {'A': torch.tensor([1, 0, 0, 0]),
@@ -147,6 +148,13 @@ def create_model(input_shape, filters, kernel_size, pool_size, hidden_layers_dim
 
     return model
 
+
+def create_data_loader(X, y, batch_size, shuffle):
+    dataset = TensorDataset(X, y)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    return dataloader
+
+
 def calculate_accuracy(y_true, y_pred):
     y_pred_tag = torch.round(y_pred)
     correct_results_sum = (y_pred_tag == y_true).sum().float()
@@ -178,25 +186,40 @@ if __name__ == '__main__':
     labels = labels[index]
 
     X_train, X_val, y_train, y_val = train_test_split(samples, labels, test_size=0.2, random_state=42)
+    train_dataloader = create_data_loader(X_train, y_train, BATCH_SIZE, True)
+    val_dataloader = create_data_loader(X_val, y_val, BATCH_SIZE, False)
 
-    model = ConvNet(hidden_layers = [32, 64], pooling_size=5, dropout_rate = 0.2)
+    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2)
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
     for epoch in range(num_epochs):
         model.train()
-        optimizer.zero_grad()
-        y_pred = model(X_train)
-        loss = loss_function(y_pred, y_train)
-        loss.backward()
-        optimizer.step()
+        train_loss = 0
+        train_acc = 0
+        for X, y in train_dataloader:
+            optimizer.zero_grad()
+            y_pred = model(X)
+            loss = loss_function(y_pred, y)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item()
+            train_acc += calculate_accuracy(y, y_pred)
+
+        train_loss /= len(train_dataloader)
+        train_acc /= len(train_dataloader)
 
         model.eval()
         with torch.no_grad():
-            y_val_pred = model(X_val)
-            val_loss = loss_function(y_val_pred, y_val)
+            val_loss = 0
+            val_acc = 0
+            for X, y in val_dataloader:
+                y_pred = model(X)
+                loss = loss_function(y_pred, y)
+                val_loss += loss.item()
+                val_acc += calculate_accuracy(y, y_pred)
 
-        train_acc = calculate_accuracy(y_train, y_pred)
-        val_acc = calculate_accuracy(y_val, y_val_pred)
-        print(f'Epoch {epoch+1}/{num_epochs}, Training Loss: {loss.item()}, Training Accuracy: {train_acc}, Validation Loss: {val_loss.item()}, Validation Accuracy: {val_acc}')
+            val_loss /= len(val_dataloader)
+            val_acc /= len(val_dataloader)
 
+        print(f'Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss}, Training Accuracy: {train_acc}, Validation Loss: {val_loss}, Validation Accuracy: {val_acc}')
