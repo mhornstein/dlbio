@@ -12,6 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from sklearn.model_selection import train_test_split
+import time
 
 MODE = 'WEIGHTED_HIGH' # 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'
 SET_SIZE = 100
@@ -195,6 +196,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
     for epoch in range(num_epochs):
+        start_time = time.time()
         model.train()
         train_loss = 0
         train_acc = 0
@@ -223,4 +225,5 @@ if __name__ == '__main__':
             val_loss /= len(val_dataloader)
             val_acc /= len(val_dataloader)
 
-        print(f'Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss}, Training Accuracy: {train_acc}, Validation Loss: {val_loss}, Validation Accuracy: {val_acc}')
+        epoch_time = time.time() - start_time
+        print(f'Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss:.5f}, Training Accuracy: {train_acc:.5f}, Validation Loss: {val_loss:.5f}, Validation Accuracy: {val_acc:.5f}, time: {epoch_time:.2f} seconds')
