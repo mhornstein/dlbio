@@ -109,6 +109,12 @@ def create_positive_dataset(files, mode, set_size):
     elif mode == 'HIGH':
         filename = filesnames[-1]
         dataset = read_samples(filename, set_size)
+    elif mode == 'LOW':
+        if 'input' in filesnames[0]: # Skip the first file in case it is input file (with random samples) if possible
+            filename = filesnames[0] if len(filesnames) == 1 else filesnames[1]
+        else:
+            filename = filesnames[0]
+        dataset = read_samples(filename, set_size)
     else:
         raise ValueError(f'Unknown mode: {mode}')
 
