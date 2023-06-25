@@ -28,38 +28,44 @@ ENCODING = {'A': [1, 0, 0, 0],
             'T': [0, 0, 0, 1],
             'N': [0.25, 0.25, 0.25, 0.25]}
 
+
 class ConvNet(nn.Module):
-    def __init__(self,hidden_layers, pooling_size, dropout_rate):
+    def __init__(self, hidden_layers, pooling_size, dropout_rate, kernel_sizes):
         super(ConvNet, self).__init__()
         self.pooling_size = pooling_size
         self.dropout_rate = dropout_rate
-        self.conv1 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=5, stride=1, padding=2)
-        self.conv2 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=7, stride=1, padding=3)
-        self.conv3 = nn.Conv1d(in_channels=4, out_channels=32, kernel_size=9, stride=1, padding=4)
+        self.kernel_sizes = kernel_sizes
+        self.num_conv_layers = len(kernel_sizes)
+        self.conv_layers = nn.ModuleList()
+
+        in_channels = 4
+        out_channels = 32
+        for kernel_size in kernel_sizes:
+            padding = kernel_size // 2
+            conv_layer = nn.Conv1d(in_channels, out_channels, kernel_size, stride=1, padding=padding)
+            self.conv_layers.append(conv_layer)
+
         self.dropout = nn.Dropout(self.dropout_rate)
 
         self.hidden_layers = nn.ModuleList()
-        input_dim = 32 * 3 * MAX_SAMPLE_LENGTH // pooling_size
+        input_dim = out_channels * self.num_conv_layers * MAX_SAMPLE_LENGTH // pooling_size
         for hl_dim in hidden_layers:
             self.hidden_layers.append(nn.Linear(input_dim, hl_dim))
             input_dim = hl_dim
 
         self.fc_out = nn.Linear(input_dim, 1)
 
-
     def forward(self, x):
-        x1 = F.relu(self.conv1(x))
-        x1 = F.max_pool1d(x1, self.pooling_size)
+        conv_outputs = []
+        for i in range(self.num_conv_layers):
+            conv_output = F.relu(self.conv_layers[i](x))
+            conv_output = F.max_pool1d(conv_output, self.pooling_size)
+            conv_outputs.append(conv_output)
 
-        x2 = F.relu(self.conv2(x))
-        x2 = F.avg_pool1d(x2, self.pooling_size)
-
-        x3 = F.relu(self.conv3(x))
-        x3 = F.max_pool1d(x3, self.pooling_size)
-
-        x = torch.cat((x1, x2, x3), dim=-1)
+        x = torch.cat(conv_outputs, dim=1)  # Concatenate along the channel dimension
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
+
         for hidden_layer in self.hidden_layers:
             x = F.relu(hidden_layer(x))
             x = self.dropout(x)
@@ -197,7 +203,7 @@ if __name__ == '__main__':
     train_dataloader = create_data_loader(X_train, y_train, BATCH_SIZE, True)
     val_dataloader = create_data_loader(X_val, y_val, BATCH_SIZE, False)
 
-    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2)
+    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2, kernel_sizes=[7, 15])
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
