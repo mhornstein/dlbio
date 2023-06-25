@@ -31,22 +31,26 @@ def calculate_f1_score(y_true, y_pred):
     f1 = 2 * (precision * recall) / (precision + recall + EPS)
     return f1.item()
 
-if __name__ == '__main__':
-    learning_rate = 0.01
-    num_epochs = 10
-    rna_compete_filename = sys.argv[1]
-    rna_compete_sequences = load_rna_compete(rna_compete_filename)
-    
-    rbns_files = sys.argv[2:]
-    samples, labels = create_dataset(rbns_files, MODE, SET_SIZE)
+def train (
+        rbns_files, mode, set_size, # data parameters
+        kernel_sizes, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization, # model parameters
+        num_epochs, batch_size, learning_rate # training parameters
+        ):
+    samples, labels = create_dataset(rbns_files, mode, set_size)
     input_length = samples.shape[-1]
 
     X_train, X_val, y_train, y_val = train_test_split(samples, labels, test_size=0.2, random_state=42)
-    train_dataloader = create_data_loader(X_train, y_train, BATCH_SIZE, True)
-    val_dataloader = create_data_loader(X_val, y_val, BATCH_SIZE, False)
+    train_dataloader = create_data_loader(X_train, y_train, batch_size, True)
+    val_dataloader = create_data_loader(X_val, y_val, batch_size, False)
 
-    model = ConvNet(input_length=input_length, hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2, kernel_sizes=[7, 15], kernels_out_channel=64,
-                    kernel_batch_normalization=True, network_batch_normalization=True)
+    model = ConvNet(input_length=input_length,
+                    hidden_layers=hidden_layers,
+                    pooling_size=pooling_size,
+                    dropout_rate=dropout_rate,
+                    kernel_sizes=kernel_sizes,
+                    kernels_out_channel=kernels_out_channel,
+                    kernel_batch_normalization=kernel_batch_normalization,
+                    network_batch_normalization=network_batch_normalization)
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
 
@@ -110,9 +114,20 @@ if __name__ == '__main__':
                         'epoch_time': epoch_time }
         results.append(result_entry)
 
-        print(f'Epoch {epoch}/{num_epochs}, '
-              f'Train Loss: {train_loss:.5f}, Train acc: {train_acc:.5f}, Train F1: {train_f1:.5f}, '
-              f'Val Loss: {val_loss:.5f}, Val acc: {val_acc:.5f}, Val F1: {val_f1:.5f}, '
-              f'time: {epoch_time:.2f} seconds')
+    results_df = pd.DataFrame(results).set_index('epoch')
+    return model, results_df
 
-    print(pd.DataFrame(results).set_index('epoch'))
+
+if __name__ == '__main__':
+    learning_rate = 0.01
+    num_epochs = 10
+    rna_compete_filename = sys.argv[1]
+    rna_compete_sequences = load_rna_compete(rna_compete_filename)
+
+    rbns_files = sys.argv[2:]
+    model, results_df = train(rbns_files=rbns_files, mode=MODE, set_size=SET_SIZE, kernel_batch_normalization=True, network_batch_normalization=True, # data parameters
+        kernel_sizes=[7,15], kernels_out_channel=64, pooling_size='Global', dropout_rate=0.2, hidden_layers=[32,64], # model parameters
+        num_epochs=10, batch_size=64, learning_rate=0.01 # training parameters
+        )
+
+    print(results_df.to_string())

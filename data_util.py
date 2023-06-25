@@ -103,6 +103,8 @@ def create_dataset(rbns_files, mode, set_size):
     - samples: A tensor of encoded and padded samples for the dataset. Its shape is 2*set_size X 4 X MAX_SAMPLE_LENGTH
     - labels (torch.Tensor): A tensor of corresponding labels for the samples. Its shape is 2*set_size X 1
     '''
+    np.random.seed(42)
+
     positive_samples = create_positive_dataset(rbns_files, mode, set_size)
     negative_samples = shuffle_samples(positive_samples)
 
