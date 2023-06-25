@@ -30,7 +30,8 @@ ENCODING = {'A': [1, 0, 0, 0],
 
 
 class ConvNet(nn.Module):
-    def __init__(self, hidden_layers, pooling_size, dropout_rate, kernel_sizes, kernels_out_channel):
+    def __init__(self, hidden_layers, pooling_size, dropout_rate, kernel_sizes, kernels_out_channel,
+                 kernel_batch_normalization, network_batch_normalization):
         super(ConvNet, self).__init__()
         self.dropout_rate = dropout_rate
         self.kernel_sizes = kernel_sizes
@@ -42,6 +43,8 @@ class ConvNet(nn.Module):
         for kernel_size in kernel_sizes:
             padding = kernel_size // 2
             conv_layer = nn.Conv1d(in_channels, out_channels, kernel_size, stride=1, padding=padding)
+            if kernel_batch_normalization:
+                conv_layer = nn.Sequential(conv_layer, nn.BatchNorm1d(out_channels))
             self.conv_layers.append(conv_layer)
 
         self.dropout = nn.Dropout(self.dropout_rate)
@@ -57,9 +60,11 @@ class ConvNet(nn.Module):
         self.hidden_layers = nn.ModuleList()
         for hl_dim in hidden_layers:
             self.hidden_layers.append(nn.Linear(input_dim, hl_dim))
+            if network_batch_normalization:
+                self.hidden_layers.append(nn.BatchNorm1d(hl_dim))
             input_dim = hl_dim
 
-        self.fc_out = nn.Linear(input_dim, 1)
+        self.fc_out = nn.Linear(input_dim, 1) # the output layer is usually kept separate from batch normalization, as it operates differently and does not benefit from the normalization process
 
     def forward(self, x):
         conv_outputs = []
@@ -209,7 +214,8 @@ if __name__ == '__main__':
     train_dataloader = create_data_loader(X_train, y_train, BATCH_SIZE, True)
     val_dataloader = create_data_loader(X_val, y_val, BATCH_SIZE, False)
 
-    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2, kernel_sizes=[7, 15], kernels_out_channel=64)
+    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2, kernel_sizes=[7, 15], kernels_out_channel=64,
+                    kernel_batch_normalization=True, network_batch_normalization=True)
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
