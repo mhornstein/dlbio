@@ -6,6 +6,7 @@ import time
 from model import ConvNet
 from data_util import load_rna_compete, create_dataset
 import torch
+import pandas as pd
 
 MODE = 'WEIGHTED_HIGH' # 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'
 SET_SIZE = 100
@@ -19,7 +20,7 @@ def create_data_loader(X, y, batch_size, shuffle):
 
 def calculate_accuracy(y_true, y_pred):
     correct_results_sum = (y_pred == y_true).sum().float()
-    return correct_results_sum/y_true.shape[0]
+    return (correct_results_sum/y_true.shape[0]).item()
 
 def calculate_f1_score(y_true, y_pred):
     tp = ((y_pred == 1) & (y_true == 1)).sum().float()
@@ -28,7 +29,7 @@ def calculate_f1_score(y_true, y_pred):
     precision = tp / (tp + fp + EPS)
     recall = tp / (tp + fn + EPS)
     f1 = 2 * (precision * recall) / (precision + recall + EPS)
-    return f1
+    return f1.item()
 
 if __name__ == '__main__':
     learning_rate = 0.01
@@ -48,6 +49,8 @@ if __name__ == '__main__':
                     kernel_batch_normalization=True, network_batch_normalization=True)
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+
+    results = []
     
     for epoch in range(1, num_epochs + 1):
         start_time = time.time()
@@ -96,7 +99,20 @@ if __name__ == '__main__':
             val_f1 /= len(val_dataloader)
 
         epoch_time = time.time() - start_time
+
+        result_entry = {'epoch': epoch,
+                        'train_loss': train_loss,
+                        'train_acc': train_acc,
+                        'train_f1': train_f1,
+                        'val_loss': val_loss,
+                        'val_acc': val_acc,
+                        'val_f1': val_f1,
+                        'epoch_time': epoch_time }
+        results.append(result_entry)
+
         print(f'Epoch {epoch}/{num_epochs}, '
               f'Train Loss: {train_loss:.5f}, Train acc: {train_acc:.5f}, Train F1: {train_f1:.5f}, '
               f'Val Loss: {val_loss:.5f}, Val acc: {val_acc:.5f}, Val F1: {val_f1:.5f}, '
               f'time: {epoch_time:.2f} seconds')
+
+    print(pd.DataFrame(results).set_index('epoch'))
