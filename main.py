@@ -111,14 +111,19 @@ def calculate_accuracy(y_true, y_pred):
     correct_results_sum = (y_pred_tag == y_true).sum().float()
     return correct_results_sum/y_true.shape[0]
 
-if __name__ == '__main__':
-    learning_rate = 0.01
-    num_epochs = 10
-    rna_compete_filename = sys.argv[1]
-    rna_compete_sequences = load_rna_compete(rna_compete_filename)
-    
-    rbns_files = sys.argv[2:]
-    positive_samples = create_positive_dataset(rbns_files, MODE, SET_SIZE)
+def create_dataset(rbns_files, mode, set_size):
+    '''
+    Creates a dataset from the provided RBNS files.
+    Parameters:
+    - rbns_files (list): A list of RBNS files to use for dataset creation.
+    - mode (str): The mode of dataset creation. This can be 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'.
+    - set_size (int): The desired size of the positive set (and negative set).
+
+    Returns:
+    - samples (list): A list of encoded and padded samples for the dataset.
+    - labels (torch.Tensor): A tensor of corresponding labels for the samples.
+    '''
+    positive_samples = create_positive_dataset(rbns_files, mode, set_size)
     negative_samples = shuffle_samples(positive_samples)
 
     positive_samples = pad_samples(positive_samples, MAX_SAMPLE_LENGTH, PADDING_CHAR)
@@ -135,6 +140,17 @@ if __name__ == '__main__':
     np.random.shuffle(index)
     samples = samples[index]
     labels = labels[index]
+
+    return samples, labels
+
+if __name__ == '__main__':
+    learning_rate = 0.01
+    num_epochs = 10
+    rna_compete_filename = sys.argv[1]
+    rna_compete_sequences = load_rna_compete(rna_compete_filename)
+    
+    rbns_files = sys.argv[2:]
+    samples, labels = create_dataset(rbns_files, MODE, SET_SIZE)
 
     X_train, X_val, y_train, y_val = train_test_split(samples, labels, test_size=0.2, random_state=42)
     train_dataloader = create_data_loader(X_train, y_train, BATCH_SIZE, True)
