@@ -1,16 +1,12 @@
-import sys
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn as nn
 from sklearn.model_selection import train_test_split
 import time
 from model import ConvNet
-from data_util import load_rna_compete, create_dataset
+from data_util import create_dataset
 import torch
 import pandas as pd
 
-MODE = 'WEIGHTED_HIGH' # 'WEIGHTED_LOW', 'WEIGHTED_HIGH', 'LOW', 'HIGH'
-SET_SIZE = 100
-BATCH_SIZE = 64
 EPS = 1e-12
 
 def create_data_loader(X, y, batch_size, shuffle):
@@ -125,18 +121,3 @@ def train(
 
     results_df = pd.DataFrame(results).set_index('epoch')
     return model, results_df
-
-
-if __name__ == '__main__':
-    learning_rate = 0.01
-    num_epochs = 10
-    rna_compete_filename = sys.argv[1]
-    rna_compete_sequences = load_rna_compete(rna_compete_filename)
-
-    rbns_files = sys.argv[2:]
-    model, results_df = train(rbns_files=rbns_files, mode=MODE, set_size=SET_SIZE, kernel_batch_normalization=True, network_batch_normalization=True, # data parameters
-        kernel_sizes=[7,15], kernels_out_channel=64, pooling_size='Global', dropout_rate=0.2, hidden_layers=[32,64], # model parameters
-        num_epochs=10, batch_size=64, learning_rate=0.01, l1=0, l2=0 # training parameters
-        )
-
-    print(results_df.to_string())
