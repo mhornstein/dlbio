@@ -36,7 +36,7 @@ def train(
         rbns_files, mode, set_size,  # data parameters
         kernel_sizes, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
         num_epochs, batch_size, learning_rate, l1, l2  # training parameters
-):
+    ):
     samples, labels = create_dataset(rbns_files, mode, set_size)
     input_length = samples.shape[-1]
 
