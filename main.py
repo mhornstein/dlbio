@@ -32,7 +32,6 @@ ENCODING = {'A': [1, 0, 0, 0],
 class ConvNet(nn.Module):
     def __init__(self, hidden_layers, pooling_size, dropout_rate, kernel_sizes, kernels_out_channel):
         super(ConvNet, self).__init__()
-        self.pooling_size = pooling_size
         self.dropout_rate = dropout_rate
         self.kernel_sizes = kernel_sizes
         self.num_conv_layers = len(kernel_sizes)
@@ -47,8 +46,15 @@ class ConvNet(nn.Module):
 
         self.dropout = nn.Dropout(self.dropout_rate)
 
+        input_dim = out_channels * self.num_conv_layers * MAX_SAMPLE_LENGTH
+        if pooling_size == 'Global':
+            self.pooling = nn.AdaptiveMaxPool1d(1)
+            input_dim //= MAX_SAMPLE_LENGTH
+        else:
+            self.pooling = nn.MaxPool1d(pooling_size)
+            input_dim //= pooling_size
+
         self.hidden_layers = nn.ModuleList()
-        input_dim = out_channels * self.num_conv_layers * MAX_SAMPLE_LENGTH // pooling_size
         for hl_dim in hidden_layers:
             self.hidden_layers.append(nn.Linear(input_dim, hl_dim))
             input_dim = hl_dim
@@ -59,7 +65,7 @@ class ConvNet(nn.Module):
         conv_outputs = []
         for i in range(self.num_conv_layers):
             conv_output = F.relu(self.conv_layers[i](x))
-            conv_output = F.max_pool1d(conv_output, self.pooling_size)
+            conv_output = self.pooling(conv_output)
             conv_outputs.append(conv_output)
 
         x = torch.cat(conv_outputs, dim=1)  # Concatenate along the channel dimension
