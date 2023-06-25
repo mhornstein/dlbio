@@ -123,6 +123,16 @@ def create_positive_dataset(files, mode, set_size):
             num_of_samples = set_size * percentage
             lines = read_samples(filename, num_of_samples)
             dataset += lines
+    elif mode == 'WEIGHTED_LOW':
+        for filename in filesnames:
+            consentration = get_file_number(filename)
+            if consentration == 0: # skip the input file
+                continue
+            percentage = (total_consentrations - consentration) / total_consentrations
+            num_of_samples = set_size * percentage
+            lines = read_samples(filename, num_of_samples)
+            dataset += lines
+            print(f"{consentration}, {percentage}, {num_of_samples}")
     elif mode == 'HIGH':
         filename = filesnames[-1]
         dataset = read_samples(filename, set_size)
@@ -134,7 +144,6 @@ def create_positive_dataset(files, mode, set_size):
         dataset = read_samples(filename, set_size)
     else:
         raise ValueError(f'Unknown mode: {mode}')
-
     return dataset
 
 def shuffle_samples(samples):
