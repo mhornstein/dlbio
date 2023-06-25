@@ -31,11 +31,12 @@ def calculate_f1_score(y_true, y_pred):
     f1 = 2 * (precision * recall) / (precision + recall + EPS)
     return f1.item()
 
-def train (
-        rbns_files, mode, set_size, # data parameters
-        kernel_sizes, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization, # model parameters
-        num_epochs, batch_size, learning_rate # training parameters
-        ):
+
+def train(
+        rbns_files, mode, set_size,  # data parameters
+        kernel_sizes, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
+        num_epochs, batch_size, learning_rate, l1, l2  # training parameters
+):
     samples, labels = create_dataset(rbns_files, mode, set_size)
     input_length = samples.shape[-1]
 
@@ -52,7 +53,7 @@ def train (
                     kernel_batch_normalization=kernel_batch_normalization,
                     network_batch_normalization=network_batch_normalization)
     loss_function = nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=l2)
 
     results = []
     
@@ -68,6 +69,14 @@ def train (
 
             # Calculate loss
             loss = loss_function(y_pred, y)
+
+            # Add L1 regularization
+            if l1 > 0:
+                l1_loss = 0
+                for param in model.parameters():
+                    l1_loss += torch.norm(param, p=1)
+                loss += l1 * l1_loss
+
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
@@ -127,7 +136,7 @@ if __name__ == '__main__':
     rbns_files = sys.argv[2:]
     model, results_df = train(rbns_files=rbns_files, mode=MODE, set_size=SET_SIZE, kernel_batch_normalization=True, network_batch_normalization=True, # data parameters
         kernel_sizes=[7,15], kernels_out_channel=64, pooling_size='Global', dropout_rate=0.2, hidden_layers=[32,64], # model parameters
-        num_epochs=10, batch_size=64, learning_rate=0.01 # training parameters
+        num_epochs=10, batch_size=64, learning_rate=0.01, l1=0, l2=0 # training parameters
         )
 
     print(results_df.to_string())
