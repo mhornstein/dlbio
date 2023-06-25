@@ -49,7 +49,7 @@ if __name__ == '__main__':
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
-    for epoch in range(num_epochs):
+    for epoch in range(1, num_epochs + 1):
         start_time = time.time()
         model.train()
         train_loss = 0
@@ -96,7 +96,7 @@ if __name__ == '__main__':
             val_f1 /= len(val_dataloader)
 
         epoch_time = time.time() - start_time
-        print(f'Epoch {epoch + 1}/{num_epochs}, '
+        print(f'Epoch {epoch}/{num_epochs}, '
               f'Train Loss: {train_loss:.5f}, Train acc: {train_acc:.5f}, Train F1: {train_f1:.5f}, '
               f'Val Loss: {val_loss:.5f}, Val acc: {val_acc:.5f}, Val F1: {val_f1:.5f}, '
               f'time: {epoch_time:.2f} seconds')
