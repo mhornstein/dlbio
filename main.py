@@ -81,7 +81,7 @@ def train(
             optimizer.step()
             train_loss += loss.item()
 
-            # Calculate classification metrics. change predicions from probability -> label
+            # Calculate classification metrics. change predictions from probability -> label
             y_pred = torch.round(y_pred)
             train_acc += calculate_accuracy(y, y_pred)
             train_f1 += calculate_f1_score(y, y_pred)
@@ -102,7 +102,7 @@ def train(
                 loss = loss_function(y_pred, y)
                 val_loss += loss.item()
 
-                # Calculate classification metrics. change predicions from probability -> label
+                # Calculate classification metrics. change predictions from probability -> label
                 y_pred = torch.round(y_pred)
                 val_acc += calculate_accuracy(y, y_pred)
                 val_f1 += calculate_f1_score(y, y_pred)
