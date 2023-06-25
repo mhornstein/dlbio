@@ -2,11 +2,6 @@ import sys
 import re
 import os
 from torch.utils.data import TensorDataset, DataLoader
-from keras.models import Model
-from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, ZeroPadding2D
-from keras.optimizers import Adam
-from keras.losses import BinaryCrossentropy
-from keras.metrics import BinaryAccuracy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -163,31 +158,10 @@ def pad_samples(samples, max_length, padding_char):
     padded_samples = list(map(lambda s: s[:max_length].ljust(max_length, padding_char), samples))
     return padded_samples
 
-def create_model(input_shape, filters, kernel_size, pool_size, hidden_layers_dims):
-    padding_shape = (kernel_size[0] - 1, kernel_size[1])
-
-    input_layer = Input(shape=input_shape)
-    input_layer_padded = ZeroPadding2D(padding=padding_shape)(input_layer)
-    conv_layer = Conv2D(filters=filters, kernel_size=kernel_size, activation='relu')(input_layer_padded)
-    max_pool_layer = MaxPooling2D(pool_size=pool_size)(conv_layer)
-    flatten_layer = Flatten()(max_pool_layer)
-
-    last_layer = flatten_layer
-    for dim in hidden_layers_dims[:-1]:
-        last_layer = Dense(dim, activation='relu')(last_layer)
-    output_layer = Dense(1, activation='sigmoid')(last_layer)
-
-    model = Model(inputs=input_layer, outputs=output_layer)
-    model.compile(optimizer=Adam(), loss=BinaryCrossentropy(), metrics=[BinaryAccuracy()])
-
-    return model
-
-
 def create_data_loader(X, y, batch_size, shuffle):
     dataset = TensorDataset(X, y)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader
-
 
 def calculate_accuracy(y_true, y_pred):
     y_pred_tag = torch.round(y_pred)
