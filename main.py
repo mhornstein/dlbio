@@ -30,7 +30,7 @@ ENCODING = {'A': [1, 0, 0, 0],
 
 
 class ConvNet(nn.Module):
-    def __init__(self, hidden_layers, pooling_size, dropout_rate, kernel_sizes):
+    def __init__(self, hidden_layers, pooling_size, dropout_rate, kernel_sizes, kernels_out_channel):
         super(ConvNet, self).__init__()
         self.pooling_size = pooling_size
         self.dropout_rate = dropout_rate
@@ -39,7 +39,7 @@ class ConvNet(nn.Module):
         self.conv_layers = nn.ModuleList()
 
         in_channels = 4
-        out_channels = 32
+        out_channels = kernels_out_channel
         for kernel_size in kernel_sizes:
             padding = kernel_size // 2
             conv_layer = nn.Conv1d(in_channels, out_channels, kernel_size, stride=1, padding=padding)
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     train_dataloader = create_data_loader(X_train, y_train, BATCH_SIZE, True)
     val_dataloader = create_data_loader(X_val, y_val, BATCH_SIZE, False)
 
-    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2, kernel_sizes=[7, 15])
+    model = ConvNet(hidden_layers=[32, 64], pooling_size=5, dropout_rate=0.2, kernel_sizes=[7, 15], kernels_out_channel=64)
     loss_function = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
     
