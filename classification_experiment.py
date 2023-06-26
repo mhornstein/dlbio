@@ -8,9 +8,18 @@ from model_trainer import train
 
 OUT_DIR = 'results'
 RESULT_FILE = f'{OUT_DIR}/results.csv'
-RESULTS_HEADER = ['exp_id', 'mode', 'set_size', 'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes',
-                  'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers', 'num_epochs', 'batch_size', 'learning_rate',
-                  'l1', 'l2', 'max_train_acc', 'max_train_acc_epoch', 'max_train_f1', 'max_train_f1_epoch', 'time', 'cpu', 'mem']
+RESULTS_HEADER = ['exp_id',
+                  # data parameters
+                  'mode', 'set_size',
+                  # model parameters
+                  'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
+                  # training parameters
+                  'num_epochs', 'batch_size', 'learning_rate', 'l1', 'l2',
+                  # experiment measurements
+                  'max_train_acc', 'max_train_acc_epoch', 'max_train_f1', 'max_train_f1_epoch',
+                  'max_val_acc', 'max_val_acc_epoch', 'max_val_f1', 'max_val_f1_epoch',
+                  # system measurements
+                  'time', 'cpu', 'mem']
 
 def draw_experiment_config():
     config = {
@@ -31,6 +40,29 @@ def draw_experiment_config():
     }
     return config
 
+def calc_experiment_measurements(results_df):
+    measurements = {}
+    max_train_acc = results_df['train_acc'].max()
+    max_train_acc_epoch = results_df['train_acc'].idxmax()
+    measurements['max_train_acc'] = max_train_acc
+    measurements['max_train_acc_epoch'] = max_train_acc_epoch
+
+    max_train_f1 = results_df['train_f1'].max()
+    max_train_f1_epoch = results_df['train_f1'].idxmax()
+    measurements['max_train_f1'] = max_train_f1
+    measurements['max_train_f1_epoch'] = max_train_f1_epoch
+
+    max_val_acc = results_df['val_acc'].max()
+    max_val_acc_epoch = results_df['val_acc'].idxmax()
+    measurements['max_val_acc'] = max_val_acc
+    measurements['max_val_acc_epoch'] = max_val_acc_epoch
+
+    max_val_f1 = results_df['val_f1'].max()
+    max_val_f1_epoch = results_df['val_f1'].idxmax()
+    measurements['max_val_f1'] = max_val_f1
+    measurements['max_val_f1_epoch'] = max_val_f1_epoch
+
+    return measurements
 
 if __name__ == '__main__':
     rna_compete_filename = sys.argv[1]
@@ -62,5 +94,6 @@ if __name__ == '__main__':
     memory_usage = psutil.virtual_memory().percent - start_memory_usage
 
     system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
-    print(system_measurements)
+
+    experiment_measurements = calc_experiment_measurements(results_df)
 
