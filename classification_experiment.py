@@ -64,6 +64,21 @@ def calc_experiment_measurements(results_df):
 
     return measurements
 
+def create_result_entry(exp_id, experiment_config, experiment_measurements, system_measurements):
+    results_entry = {'exp_id': exp_id}
+    results_entry.update(experiment_config)
+    results_entry.update(experiment_measurements)
+    results_entry.update(system_measurements)
+    del results_entry['rbns_files']
+    return results_entry
+
+def write_results(result_file, result_header, result_entry):
+    esc_value = lambda val: str(val).replace(',', '')
+    with open(result_file, 'a') as file:
+        values = [esc_value(result_entry[key]) for key in result_header]
+        file.write(','.join(str(value) for value in values) + '\n')
+
+
 if __name__ == '__main__':
     rna_compete_filename = sys.argv[1]
     rbns_files = sys.argv[2:]
@@ -75,7 +90,7 @@ if __name__ == '__main__':
         with open(RESULT_FILE, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(RESULTS_HEADER)
-        exp_id=1
+        exp_id = 1
     else: # we continue from existing experiments file
         df = pd.read_csv(RESULT_FILE)
         exp_id = df['exp_id'].max() + 1
@@ -96,4 +111,8 @@ if __name__ == '__main__':
     system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
 
     experiment_measurements = calc_experiment_measurements(results_df)
+
+    results_entry = create_result_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
+
+    write_results(RESULT_FILE, RESULTS_HEADER, results_entry)
 
