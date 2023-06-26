@@ -1,5 +1,14 @@
 import sys
 from model_trainer import train
+import os
+import csv
+import pandas as pd
+
+OUT_DIR = 'results'
+RESULT_FILE = f'{OUT_DIR}/results.csv'
+RESULTS_HEADER = ['exp_id', 'mode', 'set_size', 'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes',
+                  'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers', 'num_epochs', 'batch_size', 'learning_rate',
+                  'l1', 'l2', 'max_train_acc', 'max_train_acc_epoch', 'max_train_f1', 'max_train_f1_epoch', 'time', 'cpu', 'mem']
 
 def draw_experiment_config():
     config = {
@@ -24,6 +33,18 @@ def draw_experiment_config():
 if __name__ == '__main__':
     rna_compete_filename = sys.argv[1]
     rbns_files = sys.argv[2:]
+
+    if not os.path.exists(OUT_DIR):
+        os.makedirs(OUT_DIR)
+
+    if not os.path.exists(RESULT_FILE):
+        with open(RESULT_FILE, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(RESULTS_HEADER)
+        exp_id=1
+    else: # we continue from existing experiments file
+        df = pd.read_csv(RESULT_FILE)
+        exp_id = df['exp_id'].max() + 1
 
     experiment_config = draw_experiment_config()
 
