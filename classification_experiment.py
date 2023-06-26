@@ -1,8 +1,10 @@
 import sys
-from model_trainer import train
+import time
+import psutil
 import os
 import csv
 import pandas as pd
+from model_trainer import train
 
 OUT_DIR = 'results'
 RESULT_FILE = f'{OUT_DIR}/results.csv'
@@ -47,8 +49,18 @@ if __name__ == '__main__':
         exp_id = df['exp_id'].max() + 1
 
     experiment_config = draw_experiment_config()
-
     experiment_config['rbns_files'] = rbns_files
+
+    start_time = time.time()
+    start_cpu_percent = psutil.cpu_percent()
+    start_memory_usage = psutil.virtual_memory().percent
+
     model, results_df = train(**experiment_config)
 
-    print(results_df.to_string())
+    total_time = time.time() - start_time
+    cpu_usage = psutil.cpu_percent() - start_cpu_percent
+    memory_usage = psutil.virtual_memory().percent - start_memory_usage
+
+    system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
+    print(system_measurements)
+
