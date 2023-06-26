@@ -137,12 +137,17 @@ if __name__ == '__main__':
         with open(MEASUREMENTS_FILE, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(MEASUREMENTS_HEADER)
-        exp_id = 1
+        start_exp_id = 1
     else: # we continue from existing experiments file
         df = pd.read_csv(MEASUREMENTS_FILE)
-        exp_id = df['exp_id'].max() + 1
+        start_exp_id = df['exp_id'].max() + 1
+
+    exp_id = start_exp_id
 
     experiment_config = draw_experiment_config()
+    experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
+    print(f'Running experiment {exp_id}:', experiment_config_str)
+
     experiment_config['rbns_files'] = rbns_files
 
     start_time = time.time()
