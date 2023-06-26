@@ -80,8 +80,7 @@ def write_results(result_file, result_header, result_entry):
 
 
 if __name__ == '__main__':
-    rna_compete_filename = sys.argv[1]
-    rbns_files = sys.argv[2:]
+    rbns_files = sys.argv[1:]
 
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
