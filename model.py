@@ -22,13 +22,12 @@ class ConvNet(nn.Module):
 
         self.dropout = nn.Dropout(self.dropout_rate)
 
-        input_dim = out_channels * self.num_conv_layers * input_length
         if pooling_size == 'Global':
             self.pooling = nn.AdaptiveMaxPool1d(1)
-            input_dim //= input_length
+            input_dim = out_channels * self.num_conv_layers * 1
         else:
             self.pooling = nn.MaxPool1d(pooling_size)
-            input_dim //= pooling_size
+            input_dim = out_channels * self.num_conv_layers * (input_length // pooling_size)
 
         self.hidden_layers = nn.ModuleList()
         for hl_dim in hidden_layers:
