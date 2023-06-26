@@ -4,6 +4,8 @@ import psutil
 import os
 import csv
 import pandas as pd
+from matplotlib import pyplot as plt
+
 from model_trainer import train
 
 OUT_DIR = 'results'
@@ -78,6 +80,35 @@ def write_measurement(measurement_file, measurement_header, entry):
         values = [esc_value(entry[key]) for key in measurement_header]
         file.write(','.join(str(value) for value in values) + '\n')
 
+def plot(epochs, train_data, val_data, train_label, val_label, measurement_title, file_path):
+    plt.plot(epochs, train_data, label=train_label)
+    plt.plot(epochs, val_data, label=val_label)
+
+    plt.xlabel('Epoch')
+    plt.ylabel(measurement_title)
+    plt.title(f'{measurement_title} over Epochs')
+
+    plt.legend()
+
+    plt.savefig(file_path)
+    plt.clf()
+    plt.close()
+
+def log_experiment_results(out_dir, exp_id, results_df):
+    path = f'{out_dir}\{exp_id}'
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    epochs = results_df.index
+
+    plot(epochs=epochs, train_data=results_df['train_acc'], val_data=results_df['val_acc'],
+         train_label='train accuracy', val_label='validation accuracy', measurement_title='Accuracy',
+         file_path=f'{path}/accuracy.png')
+    plot(epochs=epochs, train_data=results_df['train_loss'], val_data=results_df['val_loss'],
+         train_label='train loss', val_label='validation loss', measurement_title='Loss',
+         file_path=f'{path}/loss.png')
+    results_df.to_csv(f'{path}/experiment_results.csv', index=True)
+
 
 if __name__ == '__main__':
     rbns_files = sys.argv[1:]
@@ -106,6 +137,8 @@ if __name__ == '__main__':
     total_time = time.time() - start_time
     cpu_usage = psutil.cpu_percent() - start_cpu_percent
     memory_usage = psutil.virtual_memory().percent - start_memory_usage
+
+    log_experiment_results(OUT_DIR, exp_id, experiment_results_df)
 
     system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
     experiment_measurements = calc_experiment_measurements(experiment_results_df)
