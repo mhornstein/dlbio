@@ -60,7 +60,6 @@ def create_positive_dataset(files, mode, set_size):
             num_of_samples = set_size * percentage
             lines = read_samples(filename, num_of_samples)
             dataset += lines
-            print(f"{consentration}, {percentage}, {num_of_samples}")
     elif mode == 'HIGH':
         filename = filesnames[-1]
         dataset = read_samples(filename, set_size)
