@@ -7,19 +7,19 @@ import pandas as pd
 from model_trainer import train
 
 OUT_DIR = 'results'
-RESULT_FILE = f'{OUT_DIR}/results.csv'
-RESULTS_HEADER = ['exp_id',
-                  # data parameters
-                  'mode', 'set_size',
-                  # model parameters
-                  'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
-                  # training parameters
-                  'num_epochs', 'batch_size', 'learning_rate', 'l1', 'l2',
-                  # experiment measurements
-                  'max_train_acc', 'max_train_acc_epoch', 'max_train_f1', 'max_train_f1_epoch',
-                  'max_val_acc', 'max_val_acc_epoch', 'max_val_f1', 'max_val_f1_epoch',
-                  # system measurements
-                  'time', 'cpu', 'mem']
+MEASUREMENTS_FILE = f'{OUT_DIR}/measurements.csv'
+MEASUREMENTS_HEADER =   ['exp_id',
+                        # data parameters
+                        'mode', 'set_size',
+                        # model parameters
+                        'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
+                        # training parameters
+                        'num_epochs', 'batch_size', 'learning_rate', 'l1', 'l2',
+                        # experiment measurements
+                        'max_train_acc', 'max_train_acc_epoch', 'max_train_f1', 'max_train_f1_epoch',
+                        'max_val_acc', 'max_val_acc_epoch', 'max_val_f1', 'max_val_f1_epoch',
+                        # system measurements
+                        'time', 'cpu', 'mem']
 
 def draw_experiment_config():
     config = {
@@ -64,18 +64,18 @@ def calc_experiment_measurements(results_df):
 
     return measurements
 
-def create_result_entry(exp_id, experiment_config, experiment_measurements, system_measurements):
-    results_entry = {'exp_id': exp_id}
-    results_entry.update(experiment_config)
-    results_entry.update(experiment_measurements)
-    results_entry.update(system_measurements)
-    del results_entry['rbns_files']
-    return results_entry
+def create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements):
+    entry = {'exp_id': exp_id}
+    entry.update(experiment_config)
+    entry.update(experiment_measurements)
+    entry.update(system_measurements)
+    del entry['rbns_files']
+    return entry
 
-def write_results(result_file, result_header, result_entry):
-    esc_value = lambda val: str(val).replace(',', '')
-    with open(result_file, 'a') as file:
-        values = [esc_value(result_entry[key]) for key in result_header]
+def write_measurement(measurement_file, measurement_header, entry):
+    esc_value = lambda val: str(val).replace(',', '') # remove commas from values' conent, so csv format won't be damaged
+    with open(measurement_file, 'a') as file:
+        values = [esc_value(entry[key]) for key in measurement_header]
         file.write(','.join(str(value) for value in values) + '\n')
 
 
@@ -85,13 +85,13 @@ if __name__ == '__main__':
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
 
-    if not os.path.exists(RESULT_FILE):
-        with open(RESULT_FILE, 'w', newline='') as file:
+    if not os.path.exists(MEASUREMENTS_FILE):
+        with open(MEASUREMENTS_FILE, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(RESULTS_HEADER)
+            writer.writerow(MEASUREMENTS_HEADER)
         exp_id = 1
     else: # we continue from existing experiments file
-        df = pd.read_csv(RESULT_FILE)
+        df = pd.read_csv(MEASUREMENTS_FILE)
         exp_id = df['exp_id'].max() + 1
 
     experiment_config = draw_experiment_config()
@@ -101,17 +101,15 @@ if __name__ == '__main__':
     start_cpu_percent = psutil.cpu_percent()
     start_memory_usage = psutil.virtual_memory().percent
 
-    model, results_df = train(**experiment_config)
+    model, experiment_results_df = train(**experiment_config)
 
     total_time = time.time() - start_time
     cpu_usage = psutil.cpu_percent() - start_cpu_percent
     memory_usage = psutil.virtual_memory().percent - start_memory_usage
 
     system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
+    experiment_measurements = calc_experiment_measurements(experiment_results_df)
+    entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
 
-    experiment_measurements = calc_experiment_measurements(results_df)
-
-    results_entry = create_result_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
-
-    write_results(RESULT_FILE, RESULTS_HEADER, results_entry)
+    write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
 
