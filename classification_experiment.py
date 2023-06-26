@@ -10,6 +10,7 @@ import scipy.stats as stats
 
 from model_trainer import train
 
+EXPERIMENT_COUNT = 5 # TODO change to 10000 before running tests
 OUT_DIR = 'results'
 MEASUREMENTS_FILE = f'{OUT_DIR}/measurements.csv'
 MEASUREMENTS_HEADER =   ['exp_id',
@@ -142,29 +143,29 @@ if __name__ == '__main__':
         df = pd.read_csv(MEASUREMENTS_FILE)
         start_exp_id = df['exp_id'].max() + 1
 
-    exp_id = start_exp_id
+    for exp_id in range(start_exp_id, start_exp_id + EXPERIMENT_COUNT):
 
-    experiment_config = draw_experiment_config()
-    experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
-    print(f'Running experiment {exp_id}:', experiment_config_str)
+        experiment_config = draw_experiment_config()
+        experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
+        print(f'Running experiment {exp_id}:', experiment_config_str)
 
-    experiment_config['rbns_files'] = rbns_files
+        experiment_config['rbns_files'] = rbns_files
 
-    start_time = time.time()
-    start_cpu_percent = psutil.cpu_percent()
-    start_memory_usage = psutil.virtual_memory().percent
+        start_time = time.time()
+        start_cpu_percent = psutil.cpu_percent()
+        start_memory_usage = psutil.virtual_memory().percent
 
-    model, experiment_results_df = train(**experiment_config)
+        model, experiment_results_df = train(**experiment_config)
 
-    total_time = time.time() - start_time
-    cpu_usage = psutil.cpu_percent() - start_cpu_percent
-    memory_usage = psutil.virtual_memory().percent - start_memory_usage
+        total_time = time.time() - start_time
+        cpu_usage = psutil.cpu_percent() - start_cpu_percent
+        memory_usage = psutil.virtual_memory().percent - start_memory_usage
 
-    log_experiment_results(OUT_DIR, exp_id, experiment_results_df)
+        log_experiment_results(OUT_DIR, exp_id, experiment_results_df)
 
-    system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
-    experiment_measurements = calc_experiment_measurements(experiment_results_df)
-    entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
+        system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
+        experiment_measurements = calc_experiment_measurements(experiment_results_df)
+        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
 
-    write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
+        write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
 
