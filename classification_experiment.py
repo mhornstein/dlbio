@@ -141,7 +141,7 @@ if __name__ == '__main__':
         start_exp_id = 1
     else: # we continue from existing experiments file
         df = pd.read_csv(MEASUREMENTS_FILE)
-        start_exp_id = df['exp_id'].max() + 1
+        start_exp_id = 1 if len(df['exp_id']) == 0 else df['exp_id'].max() + 1
 
     for exp_id in range(start_exp_id, start_exp_id + EXPERIMENT_COUNT):
 
