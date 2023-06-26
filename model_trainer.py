@@ -29,6 +29,22 @@ def calculate_f1_score(y_true, y_pred):
     return f1.item()
 
 
+def trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size):
+    '''
+    Avoid batches of size 1 as it will interfer with the model operation (mainly will damage the batch normalization functionality)
+    samples that end up in batches of size 1 will be removed
+    '''
+    if len(X_train) % batch_size == 1:
+        X_train = X_train[:-1]
+        y_train = y_train[:-1]
+
+    if len(X_val) % batch_size == 1:
+        X_val = X_val[:-1]
+        y_val = y_val[:-1]
+
+    return X_train, X_val, y_train, y_val
+
+
 def train(
         rbns_files, mode, set_size,  # data parameters
         kernel_sizes, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
@@ -38,6 +54,8 @@ def train(
     input_length = samples.shape[-1]
 
     X_train, X_val, y_train, y_val = train_test_split(samples, labels, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size)
+
     train_dataloader = create_data_loader(X_train, y_train, batch_size, True)
     val_dataloader = create_data_loader(X_val, y_val, batch_size, False)
 
