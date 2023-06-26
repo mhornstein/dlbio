@@ -54,7 +54,7 @@ def train(
     results = []
     
     for epoch in range(1, num_epochs + 1):
-        start_time = time.time()
+        epoch_start_time = time.time()
         model.train()
         train_loss = 0
         train_acc = 0
@@ -107,7 +107,7 @@ def train(
             val_acc /= len(val_dataloader)
             val_f1 /= len(val_dataloader)
 
-        epoch_time = time.time() - start_time
+        epoch_time = time.time() - epoch_start_time
 
         result_entry = {'epoch': epoch,
                         'train_loss': train_loss,
