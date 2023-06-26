@@ -5,6 +5,8 @@ import os
 import csv
 import pandas as pd
 from matplotlib import pyplot as plt
+import random
+import scipy.stats as stats
 
 from model_trainer import train
 
@@ -24,21 +26,36 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         'time', 'cpu', 'mem']
 
 def draw_experiment_config():
+    mode = random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
+    set_size = 1000 # this is a conrtant TODO change to 1000000 before running tests
+    kernel_batch_normalization = random.choice([True, False])
+    network_batch_normalization = random.choice([True, False])
+    kernel_sizes = random.sample([7, 9, 15], random.randint(1, 3))
+    kernels_out_channel = random.choice([32, 64, 128, 256, 512])
+    pooling_size = 'Global' if kernels_out_channel >= 256 else random.choice(['Global', 2, 3])
+    dropout_rate = random.choice([0, 0.25, 0.5])
+    hidden_layers = random.choices([32, 64, 128], k=random.randint(1, 3))
+    num_epochs = 5 # This is a constant TODO change to 150 before running tests
+    batch_size = random.choice([256, 128, 64])
+    learning_rate = stats.loguniform.rvs(0.0005, 0.05)
+    l1 = random.choice([0.1, 0.001, 0.0001, 0])
+    l2 = random.choice([0.1, 0.001, 0.0001, 0])
+
     config = {
-        'mode': 'WEIGHTED_HIGH',
-        'set_size': 64,
-        'kernel_batch_normalization': True,
-        'network_batch_normalization': True,
-        'kernel_sizes': [7, 15],
-        'kernels_out_channel': 64,
-        'pooling_size': 'Global',
-        'dropout_rate': 0.2,
-        'hidden_layers': [32, 64],
-        'num_epochs': 10,
-        'batch_size': 64,
-        'learning_rate': 0.01,
-        'l1': 0,
-        'l2': 0
+        'mode': mode,
+        'set_size': set_size,
+        'kernel_batch_normalization': kernel_batch_normalization,
+        'network_batch_normalization': network_batch_normalization,
+        'kernel_sizes': kernel_sizes,
+        'kernels_out_channel': kernels_out_channel,
+        'pooling_size': pooling_size,
+        'dropout_rate': dropout_rate,
+        'hidden_layers': hidden_layers,
+        'num_epochs': num_epochs,
+        'batch_size': batch_size,
+        'learning_rate': learning_rate,
+        'l1': l1,
+        'l2': l2
     }
     return config
 
