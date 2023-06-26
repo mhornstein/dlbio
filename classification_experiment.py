@@ -10,7 +10,7 @@ import scipy.stats as stats
 
 from model_trainer import train
 
-EXPERIMENT_COUNT = 5 # TODO change to 10000 before running tests
+EXPERIMENT_COUNT = 10000
 OUT_DIR = 'results'
 MEASUREMENTS_FILE = f'{OUT_DIR}/measurements.csv'
 MEASUREMENTS_HEADER =   ['exp_id',
@@ -28,7 +28,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
 
 def draw_experiment_config():
     mode = random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
-    set_size = 1000 # this is a conrtant TODO change to 1000000 before running tests
+    set_size = 1000000
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
     kernel_sizes = random.sample([7, 9, 15], random.randint(1, 3))
@@ -36,7 +36,7 @@ def draw_experiment_config():
     pooling_size = 'Global' if kernels_out_channel >= 256 else random.choice(['Global', 2, 3])
     dropout_rate = random.choice([0, 0.25, 0.5])
     hidden_layers = random.choices([32, 64, 128], k=random.randint(1, 3))
-    num_epochs = 5 # This is a constant TODO change to 150 before running tests
+    num_epochs = 200
     batch_size = random.choice([256, 128, 64])
     learning_rate = stats.loguniform.rvs(0.0005, 0.05)
     l1 = random.choice([0.1, 0.001, 0.0001, 0])
