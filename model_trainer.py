@@ -8,6 +8,7 @@ import torch
 import pandas as pd
 
 EPS = 1e-12
+MAX_EXPERIMENT_TIME_IN_MINUTES = 45
 
 def create_data_loader(X, y, batch_size, shuffle):
     dataset = TensorDataset(X, y)
@@ -52,8 +53,11 @@ def train(
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=l2)
 
     results = []
+    experiment_start_time = time.time()
     
     for epoch in range(1, num_epochs + 1):
+        if (time.time() - experiment_start_time > MAX_EXPERIMENT_TIME_IN_MINUTES * 60): # the experiment took more than MAX_EXPERIMENT_TIME_IN_MINUTES
+            break
         epoch_start_time = time.time()
         model.train()
         train_loss = 0
