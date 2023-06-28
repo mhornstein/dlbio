@@ -1,9 +1,10 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import math
 
 class ConvNet(nn.Module):
-    def __init__(self, input_length, hidden_layers, pooling_size, dropout_rate, kernel_sizes, kernels_out_channel,
+    def __init__(self, input_length, hidden_layers, pooling_size, dropout_rate, kernel_sizes, stride, kernels_out_channel,
                  kernel_batch_normalization, network_batch_normalization):
         super(ConvNet, self).__init__()
         self.dropout_rate = dropout_rate
@@ -15,7 +16,7 @@ class ConvNet(nn.Module):
         out_channels = kernels_out_channel
         for kernel_size in kernel_sizes:
             padding = kernel_size // 2
-            conv_layer = nn.Conv1d(in_channels, out_channels, kernel_size, stride=1, padding=padding)
+            conv_layer = nn.Conv1d(in_channels, out_channels, kernel_size, stride=stride, padding=padding)
             if kernel_batch_normalization:
                 conv_layer = nn.Sequential(conv_layer, nn.BatchNorm1d(out_channels))
             self.conv_layers.append(conv_layer)
@@ -23,11 +24,17 @@ class ConvNet(nn.Module):
         self.dropout = nn.Dropout(self.dropout_rate)
 
         if pooling_size == 'Global':
-            self.pooling = nn.AdaptiveMaxPool1d(1)
-            input_dim = out_channels * self.num_conv_layers * 1
+            # for global pooling, set L_out to be 1. Documentation: https://pytorch.org/docs/stable/generated/torch.nn.AdaptiveMaxPool1d.html
+            L_out = 1
+            self.pooling = nn.AdaptiveMaxPool1d(L_out)
         else:
             self.pooling = nn.MaxPool1d(pooling_size)
-            input_dim = out_channels * self.num_conv_layers * (input_length // pooling_size)
+            # General formula for CNN output size appear in the documentation: https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
+            # after substituting our parameters we get: L_out = (input_length - 1) // stride + 1
+            L_out = (input_length - 1) // stride + 1
+            L_out //= pooling_size
+
+        input_dim = out_channels * self.num_conv_layers * L_out
 
         self.hidden_layers = nn.ModuleList()
         for hl_dim in hidden_layers:

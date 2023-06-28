@@ -17,7 +17,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         # data parameters
                         'mode', 'set_size',
                         # model parameters
-                        'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
+                        'kernel_batch_normalization', 'network_batch_normalization', 'kernel_sizes', 'stride','kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
                         # training parameters
                         'num_epochs', 'batch_size', 'learning_rate', 'l1', 'l2',
                         # experiment measurements
@@ -32,6 +32,7 @@ def draw_experiment_config():
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
     kernel_sizes = random.sample([7, 9, 15], random.randint(1, 3))
+    stride = random.choice([1,2,3,4,5])
     kernels_out_channel = random.choice([32, 64, 128, 256, 512])
     pooling_size = 'Global' if kernels_out_channel >= 256 else random.choice(['Global', 2, 3])
     dropout_rate = random.choice([0, 0.25, 0.5])
@@ -48,6 +49,7 @@ def draw_experiment_config():
         'kernel_batch_normalization': kernel_batch_normalization,
         'network_batch_normalization': network_batch_normalization,
         'kernel_sizes': kernel_sizes,
+        'stride': stride,
         'kernels_out_channel': kernels_out_channel,
         'pooling_size': pooling_size,
         'dropout_rate': dropout_rate,

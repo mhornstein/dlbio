@@ -47,7 +47,7 @@ def trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size):
 
 def train(
         rbns_files, mode, set_size,  # data parameters
-        kernel_sizes, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
+        kernel_sizes, stride, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
         num_epochs, batch_size, learning_rate, l1, l2  # training parameters
     ):
     samples, labels = create_dataset(rbns_files, mode, set_size)
@@ -64,6 +64,7 @@ def train(
                     pooling_size=pooling_size,
                     dropout_rate=dropout_rate,
                     kernel_sizes=kernel_sizes,
+                    stride=stride,
                     kernels_out_channel=kernels_out_channel,
                     kernel_batch_normalization=kernel_batch_normalization,
                     network_batch_normalization=network_batch_normalization)
