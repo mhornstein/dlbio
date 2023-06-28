@@ -40,10 +40,9 @@ def read_samples(file_path, num_of_samples):
             count += 1
     return lines
 
-def create_positive_dataset(files, mode, set_size):
+def create_positive_dataset(filesnames, mode, set_size):
     dataset = []
-    filesnames = sorted(files, key=get_file_number)
-    total_consentrations = sum([get_file_number(file_path) for file_path in files])
+    total_consentrations = sum([get_file_number(file_path) for file_path in filesnames])
     if mode == 'WEIGHTED_HIGH':
         for filename in filesnames:
             consentration = get_file_number(filename)
@@ -104,8 +103,9 @@ def create_dataset(rbns_files, mode, set_size):
     '''
     np.random.seed(42)
 
-    positive_samples = create_positive_dataset(rbns_files, mode, set_size)
-    negative_samples = shuffle_samples(positive_samples)
+    filesnames = sorted(rbns_files, key=get_file_number)
+    positive_samples = create_positive_dataset(filesnames, mode, set_size)
+    negative_samples = read_samples(filesnames[0], set_size)
 
     positive_samples = pad_samples(positive_samples, MAX_SAMPLE_LENGTH, PADDING_CHAR)
     negative_samples = pad_samples(negative_samples, MAX_SAMPLE_LENGTH, PADDING_CHAR)

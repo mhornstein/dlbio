@@ -27,7 +27,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         'time', 'cpu', 'mem']
 
 def draw_experiment_config():
-    mode = random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
+    mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
     set_size = 1000000
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
