@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": [ "./data/RNAcompete_sequences.txt", "./data/RBNS_training/RBP1_20nM.seq", "./data/RBNS_training/RBP1_input.seq", "./data/RBNS_training/RBP1_5nM.seq"]
+            "args": [ "./data/RNAcompete_sequences.txt","./data/RNCMPT_training/RBP1.txt", "./data/RBNS_training/RBP1_20nM.seq", "./data/RBNS_training/RBP1_input.seq", "./data/RBNS_training/RBP1_1300nM.seq"]
         }
     ]
 }
