@@ -11,6 +11,7 @@ import scipy.stats as stats
 from model_trainer import train
 from data_util import create_rna_seqs_tensor, load_intensities_file
 from scipy.stats import pearsonr
+from rbns_files_list import rbns_files_list
 
 EXPERIMENT_COUNT = 100000
 OUT_DIR = 'results'
@@ -30,7 +31,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
 
 def draw_experiment_config():
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
-    set_size = 100000
+    set_size = 10000
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
     kernel_sizes = random.sample([7, 9, 15], random.randint(1, 3))
@@ -130,11 +131,13 @@ def model_rna_compete_predictions(model, rna_seqs_tensor):
 if __name__ == '__main__':
 
     # Read and convert RNA sequences to tensor
-    rna_compete_file = sys.argv[1]
+    rna_compete_file = "./data/RNAcompete_sequences.txt"
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
 
+    protein_index = random.randint(0, 14) 
     # Read intesities file 
-    intensities = load_intensities_file(sys.argv[2])
+    intensities = load_intensities_file(rbns_files_list[protein_index][0])
+    
 
     rbns_files = sys.argv[3:]
 
@@ -156,7 +159,7 @@ if __name__ == '__main__':
         experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
         print(f'Running experiment {exp_id}:', experiment_config_str)
 
-        experiment_config['rbns_files'] = rbns_files
+        experiment_config['rbns_files'] = rbns_files_list[protein_index][1:]
 
         start_time = time.time()
         start_cpu_percent = psutil.cpu_percent()
