@@ -21,8 +21,8 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         # training parameters
                         'num_epochs', 'batch_size', 'learning_rate', 'l1', 'l2',
                         # experiment measurements
-                        'max_train_acc', 'max_train_acc_epoch', 'max_train_f1', 'max_train_f1_epoch',
-                        'max_val_acc', 'max_val_acc_epoch', 'max_val_f1', 'max_val_f1_epoch',
+                        'max_train_acc', 'max_train_acc_epoch',
+                        'max_val_acc', 'max_val_acc_epoch',
                         # system measurements
                         'time', 'cpu', 'mem']
 
@@ -69,20 +69,10 @@ def calc_experiment_measurements(results_df):
     measurements['max_train_acc'] = max_train_acc
     measurements['max_train_acc_epoch'] = max_train_acc_epoch
 
-    max_train_f1 = results_df['train_f1'].max()
-    max_train_f1_epoch = results_df['train_f1'].idxmax()
-    measurements['max_train_f1'] = max_train_f1
-    measurements['max_train_f1_epoch'] = max_train_f1_epoch
-
     max_val_acc = results_df['val_acc'].max()
     max_val_acc_epoch = results_df['val_acc'].idxmax()
     measurements['max_val_acc'] = max_val_acc
     measurements['max_val_acc_epoch'] = max_val_acc_epoch
-
-    max_val_f1 = results_df['val_f1'].max()
-    max_val_f1_epoch = results_df['val_f1'].idxmax()
-    measurements['max_val_f1'] = max_val_f1
-    measurements['max_val_f1_epoch'] = max_val_f1_epoch
 
     return measurements
 
