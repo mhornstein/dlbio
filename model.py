@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-import math
 
 class ConvNet(nn.Module):
     def __init__(self, input_length, hidden_layers, pooling_size, dropout_rate, kernel_sizes, stride, kernels_out_channel,
