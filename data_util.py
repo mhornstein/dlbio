@@ -1,9 +1,11 @@
 import re
 import os
 import numpy as np
+import torch
+import pandas as pd
 MAX_SAMPLE_LENGTH = 40
 PADDING_CHAR = 'N'
-import torch
+
 
 # Encoding and sequence length constants
 ENCODING = {'A': [1, 0, 0, 0],
@@ -19,6 +21,14 @@ def load_rna_compete(rna_compete_filename):
         for line in f:
             seqs.append(line.strip())
     return seqs
+
+def create_rna_seqs_tensor(rna_compete_filename):
+    rna_seqs = load_rna_compete(rna_compete_filename)
+    rna_seqs = pad_samples(rna_seqs, MAX_SAMPLE_LENGTH, PADDING_CHAR)
+    return  encode_sequence_list(rna_seqs, ENCODING)
+
+def load_intensities_file(intensities_filename):
+    return pd.read_csv(intensities_filename, header=None)[0].values
 
 def get_file_number(file_path):
     file_name = os.path.basename(file_path)

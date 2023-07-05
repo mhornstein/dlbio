@@ -4,13 +4,16 @@ import psutil
 import os
 import csv
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
 import random
 import scipy.stats as stats
-
 from model_trainer import train
+from data_util import create_rna_seqs_tensor, load_intensities_file
+from scipy.stats import pearsonr
+from rbns_files_list import rbns_files_list
 
-EXPERIMENT_COUNT = 10000
+EXPERIMENT_COUNT = 100000
 OUT_DIR = 'results'
 MEASUREMENTS_FILE = f'{OUT_DIR}/measurements.csv'
 MEASUREMENTS_HEADER =   ['exp_id',
@@ -24,11 +27,13 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         'max_train_acc', 'max_train_acc_epoch',
                         'max_val_acc', 'max_val_acc_epoch',
                         # system measurements
-                        'time', 'cpu', 'mem']
+                        'time', 'cpu', 'mem',
+                        # pearson correlation
+                       'pearson correlation']
 
 def draw_experiment_config():
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
-    set_size = 1000000
+    set_size = 10000
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
     kernel_sizes = random.sample([7, 9, 15], random.randint(1, 3))
@@ -76,11 +81,12 @@ def calc_experiment_measurements(results_df):
 
     return measurements
 
-def create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements):
+def create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements, pearson_corr):
     entry = {'exp_id': exp_id}
     entry.update(experiment_config)
     entry.update(experiment_measurements)
     entry.update(system_measurements)
+    entry['pearson correlation'] = pearson_corr
     del entry['rbns_files']
     return entry
 
@@ -119,9 +125,24 @@ def log_experiment_results(out_dir, exp_id, results_df):
          file_path=f'{path}/loss.png')
     results_df.to_csv(f'{path}/experiment_results.csv', index=True)
 
+def model_rna_compete_predictions(model, rna_seqs_tensor):
+    model.eval()
+    with torch.no_grad():
+        predictions = model(rna_seqs_tensor)
+    return predictions
 
 if __name__ == '__main__':
-    rbns_files = sys.argv[1:]
+
+    # Read and convert RNA sequences to tensor
+    rna_compete_file = "./data/RNAcompete_sequences.txt"
+    rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
+
+    protein_index = random.randint(0, 14) 
+    # Read intesities file 
+    intensities = load_intensities_file(rbns_files_list[protein_index][0])
+    
+
+    rbns_files = sys.argv[3:]
 
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
@@ -141,7 +162,7 @@ if __name__ == '__main__':
         experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
         print(f'Running experiment {exp_id}:', experiment_config_str)
 
-        experiment_config['rbns_files'] = rbns_files
+        experiment_config['rbns_files'] = rbns_files_list[protein_index][1:]
 
         start_time = time.time()
         start_cpu_percent = psutil.cpu_percent()
@@ -155,9 +176,13 @@ if __name__ == '__main__':
 
         log_experiment_results(OUT_DIR, exp_id, experiment_results_df)
 
+        predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
+
+        # Compare model predictions to intensities file by Pearson Correlation
+        corr, _ = pearsonr(predictions.numpy().flatten(), intensities)
         system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
         experiment_measurements = calc_experiment_measurements(experiment_results_df)
-        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
+        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements,corr)
 
         write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
 
