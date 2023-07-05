@@ -27,7 +27,9 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         'max_train_acc', 'max_train_acc_epoch',
                         'max_val_acc', 'max_val_acc_epoch',
                         # system measurements
-                        'time', 'cpu', 'mem']
+                        'time', 'cpu', 'mem',
+                        # pearson correlation
+                       'pearson correlation']
 
 def draw_experiment_config():
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
@@ -79,11 +81,12 @@ def calc_experiment_measurements(results_df):
 
     return measurements
 
-def create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements):
+def create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements, pearson_corr):
     entry = {'exp_id': exp_id}
     entry.update(experiment_config)
     entry.update(experiment_measurements)
     entry.update(system_measurements)
+    entry['pearson correlation'] = pearson_corr
     del entry['rbns_files']
     return entry
 
@@ -173,16 +176,13 @@ if __name__ == '__main__':
 
         log_experiment_results(OUT_DIR, exp_id, experiment_results_df)
 
-        system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
-        experiment_measurements = calc_experiment_measurements(experiment_results_df)
-        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements)
-
         predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
 
         # Compare model predictions to intensities file by Pearson Correlation
         corr, _ = pearsonr(predictions.numpy().flatten(), intensities)
-        print(f'Pearson correlation between predictions and actual intensities: {corr}')
-
+        system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
+        experiment_measurements = calc_experiment_measurements(experiment_results_df)
+        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements,corr)
 
         write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
 
