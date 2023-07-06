@@ -135,7 +135,6 @@ def model_rna_compete_predictions(model, rna_seqs_tensor):
     return predictions
 
 if __name__ == '__main__':
-
     # Read and convert RNA sequences to tensor
     rna_compete_file = "./data/RNAcompete_sequences.txt"
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
@@ -157,7 +156,6 @@ if __name__ == '__main__':
         start_exp_id = 1 if len(df['exp_id']) == 0 else df['exp_id'].max() + 1
 
     for exp_id in range(start_exp_id, start_exp_id + EXPERIMENT_COUNT):
-
         experiment_config = draw_experiment_config()
         experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
         print(f'Running experiment {exp_id}:', experiment_config_str)
@@ -185,4 +183,3 @@ if __name__ == '__main__':
         entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements,corr)
 
         write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
-

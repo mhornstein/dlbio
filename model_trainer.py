@@ -15,7 +15,6 @@ def create_data_loader(X, y, batch_size, shuffle):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader
 
-
 def trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size):
     '''
     Avoid batches of size 1 as it will interfer with the model operation (mainly will damage the batch normalization functionality)
