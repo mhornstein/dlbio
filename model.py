@@ -1,14 +1,17 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import encoding_util
 
 class ConvNet(nn.Module):
-    def __init__(self, input_length, hidden_layers, pooling_size, dropout_rate, kernel_size, stride, kernels_out_channel,
+    def __init__(self, embedding_dim, input_length, hidden_layers, pooling_size, dropout_rate, kernel_size, stride, kernels_out_channel,
                  kernel_batch_normalization, network_batch_normalization):
         super(ConvNet, self).__init__()
+        self.embeddings = encoding_util.get_embedding_layer(embedding_dim)
+
         self.dropout_rate = dropout_rate
 
-        in_channels = 4
+        in_channels = self.embeddings.embedding_dim
         out_channels = kernels_out_channel
         padding = kernel_size // 2
         conv_layer = nn.Conv1d(in_channels, out_channels, kernel_size, stride=stride, padding=padding)
@@ -42,6 +45,12 @@ class ConvNet(nn.Module):
         self.fc_out = nn.Linear(input_dim, 1) # the output layer is usually kept separate from batch normalization, as it operates differently and does not benefit from the normalization process
 
     def forward(self, x):
+        embs = self.embeddings(x)
+
+        # transpose: SET_SIZE X MAX_SAMPLE_LENGTH X ENCODING_LENGTH => SET_SIZE X ENCODING_LENGTH X MAX_SAMPLE_LENGTH
+        # e.g. for one-hot encoded embeddings: batch_size X 40 X 4 => batch_size X 4 X 40
+        x = torch.transpose(embs, -1, -2)
+
         x = F.relu(self.conv_layer(x))
         x = self.pooling(x)
 

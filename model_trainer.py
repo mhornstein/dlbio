@@ -62,7 +62,7 @@ def calc_scores(dataloader, model, loss_function, l1):
 
 def train(
         rbns_files, mode, set_size,  # data parameters
-        kernel_size, stride, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
+        embedding_dim, kernel_size, stride, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
         num_epochs, batch_size, learning_rate, l1, l2  # training parameters
     ):
     samples, labels = create_dataset(rbns_files, mode, set_size)
@@ -75,6 +75,7 @@ def train(
     val_dataloader = create_data_loader(X_val, y_val, batch_size, False)
 
     model = ConvNet(input_length=input_length,
+                    embedding_dim=embedding_dim,
                     hidden_layers=hidden_layers,
                     pooling_size=pooling_size,
                     dropout_rate=dropout_rate,

@@ -12,6 +12,7 @@ from model_trainer import train
 from data_util import create_rna_seqs_tensor, load_intensities_file
 from scipy.stats import pearsonr
 from rbns_files_list import rbns_files_list
+from encoding_util import ONE_HOT
 
 EXPERIMENT_COUNT = 100000
 OUT_DIR = 'results'
@@ -20,7 +21,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
                         # data parameters
                         'mode', 'set_size',
                         # model parameters
-                        'kernel_batch_normalization', 'network_batch_normalization', 'kernel_size', 'stride', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
+                        'embedding_dim', 'kernel_batch_normalization', 'network_batch_normalization', 'kernel_size', 'stride', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
                         # training parameters
                         'num_epochs', 'batch_size', 'learning_rate', 'l1', 'l2',
                         # experiment measurements
@@ -34,6 +35,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
 def draw_experiment_config():
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
     set_size = 10000
+    embedding_dim = random.choice([ONE_HOT, 3, 5, 10, 12]) # Use None for one-hot embeddings.
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
     kernel_size = random.choice([5, 7, 9, 11, 15])
@@ -51,6 +53,7 @@ def draw_experiment_config():
     config = {
         'mode': mode,
         'set_size': set_size,
+        'embedding_dim': embedding_dim,
         'kernel_batch_normalization': kernel_batch_normalization,
         'network_batch_normalization': network_batch_normalization,
         'kernel_size': kernel_size,
