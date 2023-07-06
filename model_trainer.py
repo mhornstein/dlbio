@@ -68,7 +68,7 @@ def train(
     samples, labels = create_dataset(rbns_files, mode, set_size)
     input_length = samples.shape[-1]
 
-    X_train, X_val, y_train, y_val = train_test_split(samples, labels, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(samples, labels, test_size=0.4, random_state=42)
     X_train, X_val, y_train, y_val = trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size)
 
     train_dataloader = create_data_loader(X_train, y_train, batch_size, True)
