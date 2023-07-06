@@ -19,7 +19,7 @@ OUT_DIR = 'results'
 MEASUREMENTS_FILE = f'{OUT_DIR}/measurements.csv'
 MEASUREMENTS_HEADER =   ['exp_id',
                         # data parameters
-                        'mode', 'set_size',
+                        'protein_index', 'mode', 'set_size',
                         # model parameters
                         'embedding_dim', 'kernel_batch_normalization', 'network_batch_normalization', 'kernel_size', 'stride', 'kernels_out_channel', 'pooling_size', 'dropout_rate', 'hidden_layers',
                         # training parameters
@@ -33,13 +33,14 @@ MEASUREMENTS_HEADER =   ['exp_id',
                        'pearson correlation']
 
 def draw_experiment_config():
+    protein_index = random.randint(0, 14)
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
     set_size = 10000
     embedding_dim = random.choice([ONE_HOT, 3, 5, 10, 12]) # Use None for one-hot embeddings.
     kernel_batch_normalization = random.choice([True, False])
     network_batch_normalization = random.choice([True, False])
     kernel_size = random.choice([5, 7, 9, 11, 15])
-    stride = random.choice([1,2,3,4,5])
+    stride = random.choice([1, 2, 3, 4, 5])
     kernels_out_channel = random.choice([32, 64, 128, 256, 512])
     pooling_size = 'Global' if kernels_out_channel >= 256 else random.choice(['Global', 2, 3])
     dropout_rate = random.choice([0, 0.25, 0.5])
@@ -51,6 +52,7 @@ def draw_experiment_config():
     l2 = random.choice([0.1, 0.001, 0.0001, 0])
 
     config = {
+        'protein_index': protein_index,
         'mode': mode,
         'set_size': set_size,
         'embedding_dim': embedding_dim,
@@ -90,7 +92,6 @@ def create_measurement_entry(exp_id, experiment_config, experiment_measurements,
     entry.update(experiment_measurements)
     entry.update(system_measurements)
     entry['pearson correlation'] = pearson_corr
-    del entry['rbns_files']
     return entry
 
 def write_measurement(measurement_file, measurement_header, entry):
@@ -134,14 +135,20 @@ def model_rna_compete_predictions(model, rna_seqs_tensor):
         predictions = model(rna_seqs_tensor)
     return predictions
 
+def to_train_config(experiment_config, rbns_files_list):
+    '''
+    For train configuration we need to remove the protein index and replace it with the list of its corresponding files
+    '''
+    train_config = experiment_config.copy()
+    protein_index = train_config['protein_index']
+    del train_config['protein_index']
+    train_config['rbns_files'] = rbns_files_list[protein_index][1:]
+    return train_config
+
 if __name__ == '__main__':
     # Read and convert RNA sequences to tensor
     rna_compete_file = "./data/RNAcompete_sequences.txt"
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
-
-    protein_index = random.randint(0, 14) 
-    # Read intesities file 
-    intensities = load_intensities_file(rbns_files_list[protein_index][0])
 
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
@@ -160,13 +167,12 @@ if __name__ == '__main__':
         experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
         print(f'Running experiment {exp_id}:', experiment_config_str)
 
-        experiment_config['rbns_files'] = rbns_files_list[protein_index][1:]
-
         start_time = time.time()
         start_cpu_percent = psutil.cpu_percent()
         start_memory_usage = psutil.virtual_memory().percent
 
-        model, experiment_results_df = train(**experiment_config)
+        train_config = to_train_config(experiment_config, rbns_files_list)
+        model, experiment_results_df = train(**train_config)
 
         total_time = time.time() - start_time
         cpu_usage = psutil.cpu_percent() - start_cpu_percent
@@ -177,9 +183,12 @@ if __name__ == '__main__':
         predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
 
         # Compare model predictions to intensities file by Pearson Correlation
+        protein_index = experiment_config['protein_index']
+        intensities = load_intensities_file(rbns_files_list[protein_index][0])
         corr, _ = pearsonr(predictions.numpy().flatten(), intensities)
+
         system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
         experiment_measurements = calc_experiment_measurements(experiment_results_df)
-        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements,corr)
+        entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements, corr)
 
         write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
