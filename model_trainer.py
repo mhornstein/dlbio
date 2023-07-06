@@ -31,6 +31,34 @@ def trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size):
 
     return X_train, X_val, y_train, y_val
 
+def calc_scores(dataloader, model, loss_function, l1):
+    loss_sum = 0
+    good_sum = 0
+    total = 0
+
+    with torch.no_grad():
+        for X, y in dataloader:
+            y_pred = model(X)
+            loss = loss_function(y_pred, y)
+
+            if l1 > 0: # Add L1 regularization
+                l1_loss = 0
+                for param in model.parameters():
+                    l1_loss += torch.norm(param, p=1)
+                loss += l1 * l1_loss
+
+            loss_sum += loss.item()
+
+            prediction = torch.round(y_pred)
+            correct_pred = (prediction == y).sum().item()
+            good_sum += correct_pred
+
+            total += len(y)
+
+        avg_loss = loss_sum / total
+        avg_acc = good_sum / total
+
+    return avg_loss, avg_acc
 
 def train(
         rbns_files, mode, set_size,  # data parameters
@@ -64,20 +92,17 @@ def train(
     for epoch in range(1, num_epochs + 1):
         if (time.time() - experiment_start_time > MAX_EXPERIMENT_TIME_IN_MINUTES * 60): # the experiment took more than MAX_EXPERIMENT_TIME_IN_MINUTES
             break
-        epoch_start_time = time.time()
-        model.train()
 
-        train_loss_sum = 0
-        train_good_sum = 0
+        epoch_start_time = time.time()
+
+        model.train()
         for X, y in train_dataloader:
             optimizer.zero_grad()
-            y_pred = model(X)
 
-            # Calculate loss
+            y_pred = model(X)
             loss = loss_function(y_pred, y)
 
-            # Add L1 regularization
-            if l1 > 0:
+            if l1 > 0: # Add L1 regularization
                 l1_loss = 0
                 for param in model.parameters():
                     l1_loss += torch.norm(param, p=1)
@@ -85,46 +110,10 @@ def train(
 
             loss.backward()
             optimizer.step()
-            train_loss_sum += loss.item()
-
-            # sum correct predictions
-            prediction = torch.round(y_pred)
-            correct_pred = (prediction == y).sum().item()
-            train_good_sum += correct_pred
-
-        total = len(X_train)
-
-        train_loss = train_loss_sum / total
-        train_acc = train_good_sum / total
 
         model.eval()
-        with torch.no_grad():
-            val_loss_sum = 0
-            val_good_sum = 0
-            for X, y in val_dataloader:
-                y_pred = model(X)
-
-                # Calculate loss
-                loss = loss_function(y_pred, y)
-
-                # Add L1 regularization
-                if l1 > 0:
-                    l1_loss = 0
-                    for param in model.parameters():
-                        l1_loss += torch.norm(param, p=1)
-                    loss += l1 * l1_loss
-
-                val_loss_sum += loss.item()
-
-                # sum correct predictions
-                prediction = torch.round(y_pred)
-                correct_pred = (prediction == y).sum().item()
-                val_good_sum += correct_pred
-
-            total = len(X_val)
-
-            val_loss = val_loss_sum / total
-            val_acc = val_good_sum / total
+        train_loss, train_acc = calc_scores(train_dataloader, model, loss_function, l1)
+        val_loss, val_acc = calc_scores(val_dataloader, model, loss_function, l1)
 
         epoch_time = time.time() - epoch_start_time
 
