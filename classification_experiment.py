@@ -140,9 +140,6 @@ if __name__ == '__main__':
     protein_index = random.randint(0, 14) 
     # Read intesities file 
     intensities = load_intensities_file(rbns_files_list[protein_index][0])
-    
-
-    rbns_files = sys.argv[3:]
 
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
