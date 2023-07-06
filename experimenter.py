@@ -1,4 +1,3 @@
-import sys
 import time
 import psutil
 import os
@@ -11,7 +10,6 @@ import scipy.stats as stats
 from model_trainer import train
 from data_util import create_rna_seqs_tensor, load_intensities_file
 from scipy.stats import pearsonr
-from rbns_files_list import rbns_files_list
 from encoding_util import ONE_HOT
 
 EXPERIMENT_COUNT = 100000
@@ -33,7 +31,7 @@ MEASUREMENTS_HEADER =   ['exp_id',
                        'pearson correlation']
 
 def draw_experiment_config():
-    protein_index = random.randint(0, 14)
+    protein_index = random.randint(1, 16)
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
     set_size = 10000
     embedding_dim = random.choice([ONE_HOT, 3, 5, 10, 12]) # Use None for one-hot embeddings.
@@ -135,21 +133,45 @@ def model_rna_compete_predictions(model, rna_seqs_tensor):
         predictions = model(rna_seqs_tensor)
     return predictions
 
-def to_train_config(experiment_config, rbns_files_list):
+def get_file_list_fot_protein(dir, protein_index):
+    '''
+    returns the path to all files in dir that are relevant to the protein, i.e. the files that have the prefix RBP[protein_index]
+    '''
+    file_list = os.listdir(dir)
+    file_prefix = f'RBP{protein_index}'
+    filtered_files = list(filter(lambda file: file.startswith(file_prefix), file_list))
+    files_paths = list(map(lambda file: os.path.join(dir, file), filtered_files))
+    return files_paths
+
+def get_rncmpt_file_for_protein(rncmpt_training_file_list, protein_index):
+    files = get_file_list_fot_protein(rncmpt_training_file_list, protein_index)
+    file = files[0]
+    return file
+
+def to_train_config(experiment_config, rbns_training_dir):
     '''
     For train configuration we need to remove the protein index and replace it with the list of its corresponding files
     '''
     train_config = experiment_config.copy()
+
     protein_index = train_config['protein_index']
     del train_config['protein_index']
-    train_config['rbns_files'] = rbns_files_list[protein_index][1:]
+
+    rbns_files_list = get_file_list_fot_protein(rbns_training_dir, protein_index)
+    train_config['rbns_files'] = rbns_files_list
+
     return train_config
 
 if __name__ == '__main__':
-    # Read and convert RNA sequences to tensor
-    rna_compete_file = "./data/RNAcompete_sequences.txt"
+    # This 3 paths are the scripts arguments TODO move to argv
+    rna_compete_file = './data/RNAcompete_sequences.txt'
+    rbns_training_dir = './data/RBNS_training'
+    rncmpt_training_dir = './data/RNCMPT_training'
+
+    # First, read and convert RNA sequences to tensor
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
 
+    # Then, create results foders and files
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
 
@@ -162,6 +184,7 @@ if __name__ == '__main__':
         df = pd.read_csv(MEASUREMENTS_FILE)
         start_exp_id = 1 if len(df['exp_id']) == 0 else df['exp_id'].max() + 1
 
+    # Last - start experimenting!
     for exp_id in range(start_exp_id, start_exp_id + EXPERIMENT_COUNT):
         experiment_config = draw_experiment_config()
         experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
@@ -171,7 +194,7 @@ if __name__ == '__main__':
         start_cpu_percent = psutil.cpu_percent()
         start_memory_usage = psutil.virtual_memory().percent
 
-        train_config = to_train_config(experiment_config, rbns_files_list)
+        train_config = to_train_config(experiment_config, rbns_training_dir)
         model, experiment_results_df = train(**train_config)
 
         total_time = time.time() - start_time
@@ -184,7 +207,8 @@ if __name__ == '__main__':
 
         # Compare model predictions to intensities file by Pearson Correlation
         protein_index = experiment_config['protein_index']
-        intensities = load_intensities_file(rbns_files_list[protein_index][0])
+        rncmpt_file = get_rncmpt_file_for_protein(rncmpt_training_dir, protein_index)
+        intensities = load_intensities_file(rncmpt_file)
         corr, _ = pearsonr(predictions.numpy().flatten(), intensities)
 
         system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
