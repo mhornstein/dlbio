@@ -132,7 +132,7 @@ def model_rna_compete_predictions(model, rna_seqs_tensor):
         predictions = model(rna_seqs_tensor)
     return predictions
 
-def get_file_list_fot_protein(dir, protein_index):
+def get_file_list_for_protein(dir, protein_index):
     '''
     returns the path to all files in dir that are relevant to the protein, i.e. the files that have the prefix RBP[protein_index]
     '''
@@ -143,7 +143,7 @@ def get_file_list_fot_protein(dir, protein_index):
     return files_paths
 
 def get_rncmpt_file_for_protein(rncmpt_training_file_list, protein_index):
-    files = get_file_list_fot_protein(rncmpt_training_file_list, protein_index)
+    files = get_file_list_for_protein(rncmpt_training_file_list, protein_index)
     file = files[0]
     return file
 
@@ -156,7 +156,7 @@ def to_train_config(experiment_config, rbns_training_dir):
     protein_index = train_config['protein_index']
     del train_config['protein_index']
 
-    rbns_files_list = get_file_list_fot_protein(rbns_training_dir, protein_index)
+    rbns_files_list = get_file_list_for_protein(rbns_training_dir, protein_index)
     train_config['rbns_files'] = rbns_files_list
 
     return train_config
