@@ -112,8 +112,7 @@ def plot(epochs, train_data, val_data, train_label, val_label, measurement_title
     plt.clf()
     plt.close()
 
-def log_experiment_results(out_dir, exp_id, results_df):
-    path = f'{out_dir}\{exp_id}'
+def log_training_results(results_df, path):
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -195,13 +194,13 @@ if __name__ == '__main__':
         start_memory_usage = psutil.virtual_memory().percent
 
         train_config = to_train_config(experiment_config, rbns_training_dir)
-        model, experiment_results_df = train(**train_config)
+        model, training_results_df = train(**train_config)
 
         total_time = time.time() - start_time
         cpu_usage = psutil.cpu_percent() - start_cpu_percent
         memory_usage = psutil.virtual_memory().percent - start_memory_usage
 
-        log_experiment_results(OUT_DIR, exp_id, experiment_results_df)
+        log_training_results(results_df=training_results_df, path=f'{OUT_DIR}\{exp_id}')
 
         predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
 
@@ -212,7 +211,7 @@ if __name__ == '__main__':
         corr, _ = pearsonr(predictions.numpy().flatten(), intensities)
 
         system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
-        experiment_measurements = calc_experiment_measurements(experiment_results_df)
+        experiment_measurements = calc_experiment_measurements(training_results_df)
         entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements, corr)
 
         write_measurement(MEASUREMENTS_FILE, MEASUREMENTS_HEADER, entry)
