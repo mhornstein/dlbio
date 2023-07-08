@@ -9,6 +9,21 @@ MAX_SAMPLE_LENGTH = 40
 
 PADDING_CHAR = 'N'
 
+def get_file_list_for_protein(dir, protein_index):
+    '''
+    returns the path to all files in dir that are relevant to the protein, i.e. the files that have the prefix RBP[protein_index]
+    '''
+    file_list = os.listdir(dir)
+    file_prefix = f'RBP{protein_index}'
+    filtered_files = list(filter(lambda file: file.startswith(file_prefix), file_list))
+    files_paths = list(map(lambda file: os.path.join(dir, file), filtered_files))
+    return files_paths
+
+def get_rncmpt_file_for_protein(rncmpt_training_file_list, protein_index):
+    files = get_file_list_for_protein(rncmpt_training_file_list, protein_index)
+    file = files[0]
+    return file
+
 def load_rna_compete(rna_compete_filename):
     seqs = []
     with open(rna_compete_filename) as f:

@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import random
 import scipy.stats as stats
 from model_trainer import train
-from data_util import create_rna_seqs_tensor, load_intensities_file
+from data_util import create_rna_seqs_tensor, load_intensities_file, get_file_list_for_protein, get_rncmpt_file_for_protein
 from scipy.stats import pearsonr
 from encoding_util import ONE_HOT
 
@@ -131,21 +131,6 @@ def model_rna_compete_predictions(model, rna_seqs_tensor):
     with torch.no_grad():
         predictions = model(rna_seqs_tensor)
     return predictions
-
-def get_file_list_for_protein(dir, protein_index):
-    '''
-    returns the path to all files in dir that are relevant to the protein, i.e. the files that have the prefix RBP[protein_index]
-    '''
-    file_list = os.listdir(dir)
-    file_prefix = f'RBP{protein_index}'
-    filtered_files = list(filter(lambda file: file.startswith(file_prefix), file_list))
-    files_paths = list(map(lambda file: os.path.join(dir, file), filtered_files))
-    return files_paths
-
-def get_rncmpt_file_for_protein(rncmpt_training_file_list, protein_index):
-    files = get_file_list_for_protein(rncmpt_training_file_list, protein_index)
-    file = files[0]
-    return file
 
 def to_train_config(experiment_config, rbns_training_dir):
     '''
