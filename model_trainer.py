@@ -88,7 +88,21 @@ def train(
 
     results = []
     experiment_start_time = time.time()
-    
+
+    # First - add the initial results of the model (so we'll know what the base-line is)
+    model.eval()
+    train_loss, train_acc = calc_scores(train_dataloader, model, loss_function, l1)
+    val_loss, val_acc = calc_scores(val_dataloader, model, loss_function, l1)
+
+    result_entry = {'epoch': 0,
+                    'train_loss': train_loss,
+                    'train_acc': train_acc,
+                    'val_loss': val_loss,
+                    'val_acc': val_acc,
+                    'epoch_time': 0}
+    results.append(result_entry)
+
+    # Then - start training
     for epoch in range(1, num_epochs + 1):
         if (time.time() - experiment_start_time > MAX_EXPERIMENT_TIME_IN_MINUTES * 60): # the experiment took more than MAX_EXPERIMENT_TIME_IN_MINUTES
             break
