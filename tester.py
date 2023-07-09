@@ -1,0 +1,42 @@
+import sys
+import os
+from final_script import CHOSEN_CONFIG, evaluature_RBP
+from data_util import get_file_list_for_protein, create_rna_seqs_tensor
+
+def extract_RBP_number(rbp_filename):
+    start_index = rbp_filename.index("RBP") + 3  # Adding 3 to skip "RBP"
+    end_index = rbp_filename.index("_")
+    number = int(rbp_filename[start_index:end_index])
+    return number
+
+def get_rbps_indexes_from_dir(rbns_testing_dir):
+    files_list = os.listdir(rbns_testing_dir)
+    indexes = set(map(extract_RBP_number, files_list))
+    return indexes
+
+'''
+Input:
+    The 1st argument is the RNAcompete filename, and the second is the directory of the RBNS-test files.
+    The 3rd argument is the path for the required result directory (can be either relative or absolute path).
+Output:
+    The result directory will be created. The directory will contain a file with RNA binding intensities
+    (in the same order of the RNA sequences) for each RBP founds in the RBNS-test folder.
+    e.g. RBP19.txt will contain the intensities for RBP 19.
+'''
+if __name__ == '__main__':
+    rna_compete_file = sys.argv[1]
+    rbns_testing_dir = sys.argv[2]
+    results_dir = sys.argv[3]
+
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
+
+    indexes = get_rbps_indexes_from_dir(rbns_testing_dir)
+    for protein_index in indexes:
+        print(f'Testing protein {protein_index}')
+        rbns_files_list = get_file_list_for_protein(rbns_testing_dir, protein_index)
+        result_path = f'{results_dir}\\RBP{protein_index}.txt'
+        evaluature_RBP(config=CHOSEN_CONFIG, rna_seqs_tensor=rna_seqs_tensor,  rbns_files_list=rbns_files_list, result_file_path=result_path)
+        print()
