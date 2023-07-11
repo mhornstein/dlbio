@@ -1,6 +1,6 @@
 import sys
 import os
-from final_script import CHOSEN_CONFIG, evaluature_RBP
+from evaluator import CHOSEN_CONFIG, evaluature_RBP
 from data_util import get_file_list_for_protein, create_rna_seqs_tensor
 
 def extract_RBP_number(rbp_filename):
