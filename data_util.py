@@ -107,7 +107,12 @@ def encode_sequence_list(seq_list, c2i):
     return tensor
 
 def pad_samples(samples, max_length, padding_char):
-    padded_samples = list(map(lambda s: s[:max_length].ljust(max_length, padding_char), samples))
+    padded_samples = []
+    for s in samples:
+        if len(s) < max_length // 2:
+            s = s + s  # concat the sample to itself
+        s = s[:max_length].ljust(max_length, padding_char)  # pad the sample
+        padded_samples.append(s)
     return padded_samples
 
 def create_dataset(rbns_files, mode, set_size):
