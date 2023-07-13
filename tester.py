@@ -1,7 +1,7 @@
 import sys
 import os
 from evaluator import CHOSEN_CONFIG, evaluature_RBP
-from data_util import get_file_list_for_protein, create_rna_seqs_tensor
+from data_util import get_RBNS_files_for_protein, create_rna_seqs_tensor
 
 def extract_RBP_number(rbp_filename):
     start_index = rbp_filename.index("RBP") + 3  # Adding 3 to skip "RBP"
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     indexes = get_rbps_indexes_from_dir(rbns_testing_dir)
     for protein_index in indexes:
         print(f'Testing protein {protein_index}')
-        rbns_files_list = get_file_list_for_protein(rbns_testing_dir, protein_index)
+        rbns_files_list = get_RBNS_files_for_protein(rbns_testing_dir, protein_index)
         result_path = f'{results_dir}\\RBP{protein_index}.txt'
         evaluature_RBP(config=CHOSEN_CONFIG, rna_seqs_tensor=rna_seqs_tensor,  rbns_files_list=rbns_files_list, result_file_path=result_path)
         print()

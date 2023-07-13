@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import random
 import scipy.stats as stats
 from model_trainer import train
-from data_util import create_rna_seqs_tensor, load_intensities_file, get_file_list_for_protein, get_rncmpt_file_for_protein
+from data_util import create_rna_seqs_tensor, load_intensities_file, get_RBNS_files_for_protein, get_rncmpt_file_for_protein
 from scipy.stats import pearsonr
 from encoding_util import ONE_HOT
 
@@ -141,7 +141,7 @@ def to_train_config(experiment_config, rbns_training_dir):
     protein_index = train_config['protein_index']
     del train_config['protein_index']
 
-    rbns_files_list = get_file_list_for_protein(rbns_training_dir, protein_index)
+    rbns_files_list = get_RBNS_files_for_protein(rbns_training_dir, protein_index)
     train_config['rbns_files'] = rbns_files_list
 
     return train_config
