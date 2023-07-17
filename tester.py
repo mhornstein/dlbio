@@ -2,6 +2,7 @@ import sys
 import os
 from evaluator import CHOSEN_CONFIG, evaluature_RBP
 from data_util import get_RBNS_files_for_protein, create_rna_seqs_tensor
+import time
 
 def extract_RBP_number(rbp_filename):
     start_index = rbp_filename.index("RBP") + 3  # Adding 3 to skip "RBP"
@@ -24,6 +25,7 @@ Output:
     e.g. RBP19.txt will contain the intensities for RBP 19.
 '''
 if __name__ == '__main__':
+    start_time = time.time()
     rna_compete_file = sys.argv[1]
     rbns_testing_dir = sys.argv[2]
     results_dir = sys.argv[3]
@@ -40,3 +42,5 @@ if __name__ == '__main__':
         result_path = f'{results_dir}\\RBP{protein_index}.txt'
         evaluature_RBP(config=CHOSEN_CONFIG, rna_seqs_tensor=rna_seqs_tensor,  rbns_files_list=rbns_files_list, result_file_path=result_path)
         print()
+
+    print(f'Done. Total time: {time.time()-start_time} seconds.')
