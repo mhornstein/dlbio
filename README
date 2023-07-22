@@ -1,0 +1,80 @@
+This repository contains 4 scripts.
+Although we were asked to provide only the first one (evaluator.py), we provide all the code we made use of as part of the content of this project along with instructions how to run each.
+
+The scripts and their purpose are:
+1. evaluator.py: used for training and evaluating our chosen neural networks architecture for an individual RBP.
+2. experimenter.py: automates the process of conducting experiments with various neural networks configurations.
+It runs the given number of experiments, in each a random configuration for a neural network and an RBP are sampled.
+The training and evaluation results of each experiment are recorded.
+3. testet.py: used for training and evaluating the chosen neural network configuration for a set of RBPs.
+4. corr_plotter.py: small utility script for calculating and visualizing the correlations between RBPs' intensities and the predictions.
+
+Following are instructions how to run each script:
+
+Evaluator.py
+------------
+Usage:
+python evaluator.py [path to RNAcompete_sequences file] [one or more RBNS files for training]
+
+example:
+python evaluator.py ./data/RNAcompete_sequences.txt ./data/RBNS_training/RBP2_5nM.seq ./data/RBNS_training/RBP2_20nM.seq ./data/RBNS_training/RBP2_80nM.seq ./data/RBNS_training/RBP2_320nM.seq ./data/RBNS_training/RBP2_1300nM.seq ./data/RBNS_training/RBP2_input.seq
+
+Results:
+A model will be trained according to the RBNs files.
+The progress will be displayed in the console.
+The prediction probabilities (i.e. the scores) will be written to the generated scores.txt file.
+
+Link for output example: TODO
+
+
+experimenter.py: TODO: update according to Usage!
+----------------
+Usage:
+python experimenter.py [path to RNAcompete_sequences file] [path to RBNS_training directory] [path to RNCMPT_training directory] [number of experiments to conduct]
+
+Example:
+python experimenter.py ./data/RNAcompete_sequences.txt ./data/RBNS_training ./data/RNCMPT_training 5
+
+The Results:
+The progress will be displayed in the console.
+A "result" directory will be created (if not already existed). It will contain the following:
+* measurements.csv – a CSV file logging each experiment ID, the sampled network configuration, and the experiment results (loss, accuracy, time, etc).
+* A directory for each experiment ID – containing accuracy and loss graphs, as well as the raw training results data.
+Note: If you wish to conduct more experiments, simply re-run the experimenter.py again: It will fetch the lst experiment ID from the measurements.csv and continue from there.
+
+Link for output example:
+
+tester.py
+-----------
+Usage:
+python tester.py [path to RNAcompete_sequences file] [directory of the RBNS-test files] [result directory]
+
+example:
+./data/RNAcompete_sequences.txt ./data/RBNS_training train_results
+or:
+python tester.py ./data/RNAcompete_sequences.txt ./data/RBNS_testing test_results
+
+Results:
+A model will be trained for each RBP found in the directory.
+The trained model will then be used to predict the intensity of the RNA sequences provided in the RNAcompete sequences file:
+* The prediction probabilities will be written to separate text files, with each file named after the corresponding RBP, e.g. RBP1.txt will contain the predictions for RBP number 1.
+* The directory will also include a " train_result" directory with individual directories for each RBP, containing information about the training performance.
+The progress will be displayed in the console.
+
+Link for output example:
+
+corr_plotter.py
+---------------
+Usage:
+python corr_plotter.py [directory for train-set gold intensities] [directory to predicted train-set intensitied] [results_dir]
+
+example:
+corr_plotter.py ./data/RNCMPT_training ./train_set_results corr_results
+
+where:
+data/RNCMPT_training – was provided as part of the assignment.
+train_set_results – is the output directory of the testet.py script.
+
+Results:
+An output file named correlation_data.csv will be generated in the corr_results directory, along with the box-plot image.
+Note: the script assumes that both directories have the same RBPs files.
