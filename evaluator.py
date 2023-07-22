@@ -39,7 +39,7 @@ Flow:
     5. Create resulsts file.
 '''
 
-def evaluature_RBP(config, rna_seqs_tensor, rbns_files_list, result_file_path):
+def evaluature_RBP(config, rna_seqs_tensor, rbns_files_list, predictions_file_path, train_result_path = None):
     train_config = config.copy()
     train_config['rbns_files'] = rbns_files_list
 
@@ -49,12 +49,13 @@ def evaluature_RBP(config, rna_seqs_tensor, rbns_files_list, result_file_path):
     total_time = time.time() - start_time
     print(f'Done training. Total time: {total_time} seconds.')
 
-    log_training_results(results_df=training_results_df, path='training_results')  # TODO delete upon submission
+    if train_result_path is not None:
+        log_training_results(results_df=training_results_df, path=train_result_path)
 
     print('Start predictions...')
     predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
-    print(f'Done predictions. Writing results to {result_file_path} file.')
-    np.savetxt(result_file_path, predictions.numpy())
+    print(f'Done predictions. Writing results to {predictions_file_path} file.')
+    np.savetxt(predictions_file_path, predictions.numpy())
     print('Done.')
 
 if __name__ == '__main__':

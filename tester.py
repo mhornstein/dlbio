@@ -29,9 +29,13 @@ if __name__ == '__main__':
     rna_compete_file = sys.argv[1]
     rbns_testing_dir = sys.argv[2]
     results_dir = sys.argv[3]
+    train_result_path = f'{results_dir}/train_result'
 
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
+
+    if not os.path.exists(train_result_path):
+        os.makedirs(train_result_path)
 
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
 
@@ -39,8 +43,9 @@ if __name__ == '__main__':
     for protein_index in indexes:
         print(f'Testing protein {protein_index}')
         rbns_files_list = get_RBNS_files_for_protein(rbns_testing_dir, protein_index)
-        result_path = f'{results_dir}\\RBP{protein_index}.txt'
-        evaluature_RBP(config=CHOSEN_CONFIG, rna_seqs_tensor=rna_seqs_tensor,  rbns_files_list=rbns_files_list, result_file_path=result_path)
+        predictions_file_path = f'{results_dir}\\RBP{protein_index}.txt'
+        evaluature_RBP(config=CHOSEN_CONFIG, rna_seqs_tensor=rna_seqs_tensor, rbns_files_list=rbns_files_list,
+                       predictions_file_path=predictions_file_path, train_result_path=f'{train_result_path}/{protein_index}')
         print()
 
     print(f'Done. Total time: {time.time()-start_time} seconds.')
