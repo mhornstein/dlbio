@@ -56,11 +56,10 @@ def read_samples(file_path, num_of_samples):
     lines = []
     count = 0
     with open(file_path, 'r') as f:
-        for line in f:
-            if count >= num_of_samples:
-                break
-            seq = line.strip().split()[0]
-            lines.append(seq)
+        while count < num_of_samples:
+            seq1 = f.readline().strip().split()[0]
+            seq2 = f.readline().strip().split()[0]
+            lines.append(seq1+seq2)
             count += 1
     return lines
 
@@ -109,12 +108,7 @@ def encode_sequence_list(seq_list, c2i):
     return tensor
 
 def pad_samples(samples, max_length, padding_char):
-    padded_samples = []
-    for s in samples:
-        if len(s) < max_length // 2:
-            s = s + s  # concat the sample to itself
-        s = s[:max_length].ljust(max_length, padding_char)  # pad the sample
-        padded_samples.append(s)
+    padded_samples = list(map(lambda s: s[:max_length].ljust(max_length, padding_char), samples))
     return padded_samples
 
 def create_dataset(rbns_files, mode, set_size):
