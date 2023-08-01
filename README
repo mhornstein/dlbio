@@ -6,7 +6,7 @@ The scripts and their purpose are:
 2. experimenter.py: automates the process of conducting experiments with various neural networks configurations.
 It runs the given number of experiments, in each a random configuration for a neural network and an RBP are sampled.
 The training and evaluation results of each experiment are recorded.
-3. testet.py: used for training and evaluating the chosen neural network configuration for a set of RBPs.
+3. testet.py: used for training and conducting predictions using the chosen neural network configuration for a set of RBPs.
 4. corr_plotter.py: small utility script for calculating and visualizing the correlations between RBPs' intensities and the predictions.
 
 Following are instructions how to run each script:
@@ -50,16 +50,16 @@ Usage:
 python tester.py [path to RNAcompete_sequences file] [directory of the RBNS-test files] [result directory]
 
 example:
-./data/RNAcompete_sequences.txt ./data/RBNS_training train_results
+python tester.py ./data/RNAcompete_sequences.txt ./data/RBNS_training train_results
 or:
 python tester.py ./data/RNAcompete_sequences.txt ./data/RBNS_testing test_results
 
 Results:
-A model will be trained for each RBP found in the directory.
-The trained model will then be used to predict the intensity of the RNA sequences provided in the RNAcompete sequences file:
-* The prediction probabilities will be written to separate text files, with each file named after the corresponding RBP, e.g. RBP1.txt will contain the predictions for RBP number 1.
-* The directory will also include a " train_result" directory with individual directories for each RBP, containing information about the training performance.
-The progress will be displayed in the console.
+* A model will be trained for each RBP found in the directory.
+* The trained model will then be used to predict the intensity of the RNA sequences provided in the RNAcompete sequences file:
+    - The prediction probabilities will be written to separate text files, with each file named after the corresponding RBP, e.g. RBP1.txt will contain the predictions for RBP number 1.
+    - The directory will also include a " train_result" directory with individual directories for each RBP, containing information about the training performance.
+* The progress will be displayed in the console.
 
 Link for output example:
 
