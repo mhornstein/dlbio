@@ -126,11 +126,18 @@ def log_training_results(results_df, path):
          file_path=f'{path}/loss.png')
     results_df.to_csv(f'{path}/experiment_results.csv', index=True)
 
-def model_rna_compete_predictions(model, rna_seqs_tensor):
+def model_rna_compete_predictions(model, rna_seqs_tensor, batch_size=64):
     model.eval()
+    num_samples = rna_seqs_tensor.shape[0]
+    predictions = []
+
     with torch.no_grad():
-        predictions = model(rna_seqs_tensor)
-    return predictions
+        for i in range(0, num_samples, batch_size):
+            batch_seqs = rna_seqs_tensor[i:i + batch_size]
+            batch_preds = model(batch_seqs)
+            predictions.append(batch_preds)
+
+    return torch.cat(predictions, dim=0)
 
 def to_train_config(experiment_config, rbns_training_dir):
     '''
