@@ -20,9 +20,9 @@ example:
 python evaluator.py ./data/RNAcompete_sequences.txt ./data/RBNS_training/RBP2_5nM.seq ./data/RBNS_training/RBP2_20nM.seq ./data/RBNS_training/RBP2_80nM.seq ./data/RBNS_training/RBP2_320nM.seq ./data/RBNS_training/RBP2_1300nM.seq ./data/RBNS_training/RBP2_input.seq
 
 Results:
-A model will be trained according to the RBNs files.
-The progress will be displayed in the console.
-The prediction probabilities (i.e. the scores) will be written to the generated scores.txt file.
+* A model will be trained according to the RBNs files.
+* The progress will be displayed in the console.
+* The prediction probabilities (i.e. the scores) will be written to the generated scores.txt file.
 
 Link for output example: TODO
 
@@ -35,12 +35,12 @@ python experimenter.py [path to RNAcompete_sequences file] [path to RBNS_trainin
 Example:
 python experimenter.py ./data/RNAcompete_sequences.txt ./data/RBNS_training ./data/RNCMPT_training 5
 
-The Results:
-The progress will be displayed in the console.
-A "result" directory will be created (if not already existed). It will contain the following:
-* measurements.csv – a CSV file logging each experiment ID, the sampled network configuration, and the experiment results (loss, accuracy, time, etc).
-* A directory for each experiment ID – containing accuracy and loss graphs, as well as the raw training results data.
-Note: If you wish to conduct more experiments, simply re-run the experimenter.py again: It will fetch the lst experiment ID from the measurements.csv and continue from there.
+Results:
+* The progress will be displayed in the console.
+* A "result" directory will be created (if not already existed). It will contain the following:
+    - measurements.csv – a CSV file logging each experiment ID, the sampled network configuration, and the experiment results (loss, accuracy, time, etc).
+    - A directory for each experiment ID – containing accuracy and loss graphs, as well as the raw training results data.
+Note: If you wish to conduct more experiments, simply re-run the experimenter.py again: It will fetch the last experiment ID from the measurements.csv and continue from there.
 
 Link for output example:
 
