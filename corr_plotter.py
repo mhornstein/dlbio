@@ -1,15 +1,20 @@
 '''
 This script is used to calculate the correlation between the gold and predicted scores of the RNCMPT training data.
-The script requires the following inputs:
 
-train_gold_dir: A string representing the directory path where the gold (actual) scores for the RNCMPT training data are stored.
+Usage:
+python corr_plotter.py [path to gold-scores directory] [path to predicted-scores directory] [results directory]
+
+example:
+python corr_plotter.py data\\RNCMPT_training train_set_results corr_report
+
+Explainations about the parameters:
+* path to gold-scores directory: A string representing the directory path where the gold (actual) scores for the RNCMPT training data are stored.
 It should contain files of the form RBP1.txt...RBP16.txt.
-
-train_predictions_dir: A string representing the directory path where the predicted scores for the RNCMPT training data are stored.
+* path to predicted-scores directory: A string representing the directory path where the predicted scores for the RNCMPT training data are stored.
 These predicted scores are the output of the model's performance on the training data. They can be created using the tester.py script.
 It should contain files of the same form as train_gold_dir, i.e. RBP1.txt...RBP16.txt.
+* results directory: The directory where the results should be saved.
 
-results_dir: The directory where the results should be saved.
 The result will contain a CSV containing the correlation scores and a corresponding box plot.
 '''
 
