@@ -1,3 +1,22 @@
+'''
+This script automates the process of conducting experiments with various configurations.
+It runs the given number of experiments, in each a random configuration for a neural network and an RBP are sampled.
+The training and evaluation results of each experiment are recorded.
+
+Usage:
+python experimenter.py [path to RNAcompete_sequences file] [path to RBNS_training directory] [path to RNCMPT_training directory] [number of experiments to conduct]
+
+Example:
+python experimenter.py ./data/RNAcompete_sequences.txt ./data/RBNS_training ./data/RNCMPT_training 5
+
+Results:
+* The progress will be displayed in the console.
+* A "result" directory will be created (if not already existed). It will contain the following:
+    - measurements.csv – a CSV file logging each experiment ID, the sampled network configuration, and the experiment results (loss, accuracy, time, etc).
+    - A directory for each experiment ID – containing accuracy and loss graphs, as well as the raw training results data.
+Note: If you wish to conduct more experiments, simply re-run the experimenter.py again: It will fetch the last experiment ID from the measurements.csv and continue from there.
+'''
+
 import time
 import psutil
 import os
@@ -31,6 +50,11 @@ MEASUREMENTS_HEADER =   ['exp_id',
                        'pearson correlation']
 
 def draw_experiment_config():
+    '''
+    Generate a random experiment configuration for training neural networks on protein-related data.
+    The configuration includes various hyperparameters that affect the network architecture and training process.
+    Each hyperparameter is randomly assigned from predefined choices to create diverse experiment settings.
+    '''
     protein_index = random.randint(1, 16)
     mode = 'HIGH' # random.choice(['WEIGHTED_HIGH', 'WEIGHTED_LOW', 'HIGH', 'LOW'])
     set_size = 10000
@@ -71,6 +95,12 @@ def draw_experiment_config():
     return config
 
 def calc_experiment_measurements(results_df):
+    '''
+    This function computes and returns performance measurements from a given results DataFrame containing
+    training and validation accuracy values over multiple epochs.
+    The measurements include the maximum training accuracy, the corresponding epoch with the maximum training accuracy,
+    the maximum validation accuracy, and the epoch associated with the maximum validation accuracy.
+    '''
     measurements = {}
     max_train_acc = results_df['train_acc'].max()
     max_train_acc_epoch = results_df['train_acc'].idxmax()
@@ -85,6 +115,9 @@ def calc_experiment_measurements(results_df):
     return measurements
 
 def create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements, pearson_corr):
+    '''
+    This function creates a comprehensive measurement entry by combining the various experimental data into a single dictionary
+    '''
     entry = {'exp_id': exp_id}
     entry.update(experiment_config)
     entry.update(experiment_measurements)
@@ -93,12 +126,21 @@ def create_measurement_entry(exp_id, experiment_config, experiment_measurements,
     return entry
 
 def write_measurement(measurement_file, measurement_header, entry):
+    '''
+    This function writes experiment measurements stored in the entry object to a specified CSV file (measurement_file).
+    The measurements are organized based on the order specified by the measurement_header list,
+    ensuring consistency in the CSV file's column arrangement
+    '''
     esc_value = lambda val: str(val).replace(',', '') # remove commas from values' conent, so csv format won't be damaged
     with open(measurement_file, 'a') as file:
         values = [esc_value(entry[key]) for key in measurement_header]
         file.write(','.join(str(value) for value in values) + '\n')
 
 def plot(epochs, train_data, val_data, train_label, val_label, measurement_title, file_path):
+    '''
+    This function generates a line plot to visualize the progression of a measurement over multiple epochs during the training and validation phases of an experiment.
+    The plot includes two lines: one representing the measurement values for the training data and the other for the validation data.
+    '''
     plt.plot(epochs, train_data, label=train_label)
     plt.plot(epochs, val_data, label=val_label)
 
@@ -113,6 +155,11 @@ def plot(epochs, train_data, val_data, train_label, val_label, measurement_title
     plt.close()
 
 def log_training_results(results_df, path):
+    '''
+    This function logs and saves the results of a training experiment to a specified directory (path).
+    It includes generating and saving two line plots, one for accuracy and another for loss, representing the training and validation performance over different epochs.
+    Additionally, the function saves the complete experiment results DataFrame as a CSV file.
+    '''
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -127,6 +174,10 @@ def log_training_results(results_df, path):
     results_df.to_csv(f'{path}/experiment_results.csv', index=True)
 
 def model_rna_compete_predictions(model, rna_seqs_tensor, batch_size=64):
+    '''
+    This function uses the provided model to make predictions for RNA compete sequences.
+    It efficiently processes the RNA sequences in batches, optimizing memory utilization during the inference process.
+    '''
     model.eval()
     num_samples = rna_seqs_tensor.shape[0]
     predictions = []
@@ -162,7 +213,7 @@ if __name__ == '__main__':
     # First, read and convert RNA sequences to tensor
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
 
-    # Then, create results foders and files
+    # Then, create results folders and files
     if not os.path.exists(OUT_DIR):
         os.makedirs(OUT_DIR)
 
@@ -177,10 +228,13 @@ if __name__ == '__main__':
 
     # Last - start experimenting!
     for exp_id in range(start_exp_id, start_exp_id + EXPERIMENT_COUNT):
+
+        # 1 - draw configuration
         experiment_config = draw_experiment_config()
         experiment_config_str = ','.join([f'{key}={value}' for key, value in experiment_config.items()])
         print(f'Running experiment {exp_id}:', experiment_config_str)
 
+        # 2 - start training
         start_time = time.time()
         start_cpu_percent = psutil.cpu_percent()
         start_memory_usage = psutil.virtual_memory().percent
@@ -192,16 +246,18 @@ if __name__ == '__main__':
         cpu_usage = psutil.cpu_percent() - start_cpu_percent
         memory_usage = psutil.virtual_memory().percent - start_memory_usage
 
+        # 3 - when training ends - log train results
         log_training_results(results_df=training_results_df, path=f'{OUT_DIR}\{exp_id}')
 
+        # 4 - calculate the pearson correlation with the rncmpt gold scores
         predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
 
-        # Compare model predictions to intensities file by Pearson Correlation
         protein_index = experiment_config['protein_index']
         rncmpt_file = get_rncmpt_file_for_protein(rncmpt_training_dir, protein_index)
         intensities = load_intensities_file(rncmpt_file)
         corr, _ = pearsonr(predictions.numpy().flatten(), intensities)
 
+        # 5 - log all results
         system_measurements = {'time': total_time, 'cpu': cpu_usage, 'mem': memory_usage}
         experiment_measurements = calc_experiment_measurements(training_results_df)
         entry = create_measurement_entry(exp_id, experiment_config, experiment_measurements, system_measurements, corr)
