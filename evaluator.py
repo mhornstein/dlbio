@@ -1,3 +1,26 @@
+'''
+This script is used for training and evaluating the chosen neural networks architecture
+for an *individual* RBP.
+
+Usage:
+python evaluator.py [path to RNAcompete_sequences file] [one or more RBNS files for training]
+
+example:
+python evaluator.py ./data/RNAcompete_sequences.txt ./data/RBNS_training/RBP2_5nM.seq ./data/RBNS_training/RBP2_20nM.seq ./data/RBNS_training/RBP2_80nM.seq ./data/RBNS_training/RBP2_320nM.seq ./data/RBNS_training/RBP2_1300nM.seq ./data/RBNS_training/RBP2_input.seq
+
+The script general flow is:
+1. Parse RBNS files.
+2. Create positive + negative examples.
+3. Train the model.
+4. Get model classification on rna_compete_file intensities
+5. Create results file.
+
+Results:
+A model will be trained according to the RBNs files.
+The progress will be displayed in the console.
+The prediction probabilities (i.e. the scores) will be written to the generated scores.txt file.
+'''
+
 import sys
 from encoding_util import ONE_HOT
 from model_trainer import train
@@ -6,7 +29,7 @@ from data_util import create_rna_seqs_tensor
 import time
 import numpy as np
 
-CHOSEN_CONFIG = { # TODO change me to the final configuration you found!
+CHOSEN_CONFIG = {
     'mode': 'HIGH',
     'set_size': 1000000,
     'embedding_dim': ONE_HOT,
@@ -26,19 +49,6 @@ CHOSEN_CONFIG = { # TODO change me to the final configuration you found!
 }
 
 RESULT_FILE = 'result.txt'
-
-'''
-Input: 
-    The 1st argument is the RNAcompete filename, and 4-6 filenames of RBNS files
-Output:
-    a file with RNA binding intensities (in the same order of the RNA sequences)
-Flow:
-    1. Parse RBNS files.
-    2. create positive + negative examples.
-    3. train the model.
-    4. Get model classification on rna_compete_file intensities
-    5. Create resulsts file.
-'''
 
 def evaluature_RBP(config, rna_seqs_tensor, rbns_files_list, predictions_file_path, train_result_path = None):
     train_config = config.copy()
