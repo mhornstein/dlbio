@@ -1,3 +1,10 @@
+'''
+This script contains the "train" function, which is used by the evaluator.py, experimenter.py, and tester.py.
+It used to train a specific model based on a provided configuration.
+The function returns the trained model and the training results.
+All other functions in this script are exclusively used by the "train" function.
+'''
+
 from torch.utils.data import TensorDataset, DataLoader
 import torch.nn as nn
 from sklearn.model_selection import train_test_split
@@ -11,6 +18,10 @@ EPS = 1e-12
 MAX_EXPERIMENT_TIME_IN_MINUTES = 45
 
 def create_data_loader(X, y, batch_size, shuffle):
+    '''
+    creates a data loader from the given input data X and corresponding labels y.
+    shuffle indicates whether to shuffle the data during batching, and batch_size used for grouping samples during training or evaluation
+    '''
     dataset = TensorDataset(X, y)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return dataloader
@@ -31,6 +42,10 @@ def trim_single_samples_in_batch(X_train, X_val, y_train, y_val, batch_size):
     return X_train, X_val, y_train, y_val
 
 def calc_scores(dataloader, model, loss_function, l1):
+    '''
+    This function calculates evaluation scores, including the average loss and accuracy, for a given model on a dataset provided through the dataloader.
+    The function supports L1 regularization.
+    '''
     loss_sum = 0
     good_sum = 0
     total = 0
@@ -64,6 +79,34 @@ def train(
         embedding_dim, kernel_size, stride, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
         num_epochs, batch_size, learning_rate, l1, l2  # training parameters
     ):
+    '''
+    This function trains a CNN model on RBNS data for competing prediction.
+    The training process includes data preprocessing, model construction, and optimization using backpropagation with an Adam optimizer.
+    The function provides a trained model and a DataFrame with the training results for analysis.
+    Parameters:
+        rbns_files (list of str): A list containing file paths to RBNS data files.
+        mode (str): Specifies the type of data to be used for training as positive samples. Options may be 'HIGH', 'WEIGHTED_HIGH', 'WEIGHTED_LOW', 'LOW'.
+        set_size (int): The size of the positive and negative samples in the training dataset.
+        embedding_dim (int or str): The configuration of the required embeddings. Can be either ONE_HOT or an integer indicating its dimension.
+        kernel_size (int): The size of the kernel used in the convolutional layer for feature extraction.
+        stride (int): The stride used in the convolutional layer.
+        pooling_size (int or str): The size of the pooling operation. If 'Global', global max-pooling is used; otherwise, the integer value specifies the size of max-pooling.
+        dropout_rate (float): The dropout rate used for regularization during training.
+        hidden_layers (list of int): A list containing the dimensions of hidden layers used in the fully connected part of the model.
+        kernel_batch_normalization (bool): A boolean value indicating whether batch normalization is applied to the convolutional layer.
+        network_batch_normalization (bool): A boolean value indicating whether batch normalization is applied to the fully connected layers.
+        num_epochs (int): The number of training epochs.
+        batch_size (int): The batch size used for training.
+        learning_rate (float): The learning rate used for weight updates during optimization.
+        l1 (float): The strength of L1 regularization.
+        l2 (float): The strength of L2 regularization.
+
+    Returns:
+        model (torch.nn.Module): The trained CNN model
+        results_df (pandas DataFrame): A DataFrame containing the training results, including training loss, training accuracy, validation loss, validation accuracy, and the time taken for each epoch.
+        The DataFrame is indexed by epoch number.
+    '''
+
     samples, labels = create_dataset(rbns_files, mode, set_size)
     input_length = samples.shape[-1]
 
