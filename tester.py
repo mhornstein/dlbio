@@ -1,3 +1,22 @@
+'''
+This script is used for training and conducting predictions using the chosen neural network configuration for a set of RBPs.
+
+Usage:
+python tester.py [path to RNAcompete_sequences file] [directory of the RBNS-test files] [result directory]
+
+example:
+python tester.py ./data/RNAcompete_sequences.txt ./data/RBNS_training train_results
+or:
+python tester.py ./data/RNAcompete_sequences.txt ./data/RBNS_testing test_results
+
+Results:
+* A model will be trained for each RBP found in the directory.
+* The trained model will then be used to predict the intensity of the RNA sequences provided in the RNAcompete sequences file:
+    - The prediction probabilities will be written to separate text files, with each file named after the corresponding RBP, e.g. RBP1.txt will contain the predictions for RBP number 1.
+    - The directory will also include a " train_result" directory with individual directories for each RBP, containing information about the training performance.
+* The progress will be displayed in the console.
+'''
+
 import sys
 import os
 from evaluator import CHOSEN_CONFIG, evaluature_RBP
@@ -5,25 +24,22 @@ from data_util import get_RBNS_files_for_protein, create_rna_seqs_tensor
 import time
 
 def extract_RBP_number(rbp_filename):
+    '''
+    Extracts the RBP number from a given RBP filename
+    '''
     start_index = rbp_filename.index("RBP") + 3  # Adding 3 to skip "RBP"
     end_index = rbp_filename.index("_")
     number = int(rbp_filename[start_index:end_index])
     return number
 
 def get_rbps_indexes_from_dir(rbns_testing_dir):
+    '''
+    Returns a list of RBP numbers extracted from the filenames in the given directory
+    '''
     files_list = os.listdir(rbns_testing_dir)
     indexes = set(map(extract_RBP_number, files_list))
     return indexes
 
-'''
-Input:
-    The 1st argument is the RNAcompete filename, and the second is the directory of the RBNS-test files.
-    The 3rd argument is the path for the required result directory (can be either relative or absolute path).
-Output:
-    The result directory will be created. The directory will contain a file with RNA binding intensities
-    (in the same order of the RNA sequences) for each RBP founds in the RBNS-test folder.
-    e.g. RBP19.txt will contain the intensities for RBP 19.
-'''
 if __name__ == '__main__':
     start_time = time.time()
     rna_compete_file = sys.argv[1]
