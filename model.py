@@ -1,3 +1,9 @@
+'''
+This script defines a custom Convolutional Neural Network (CNN) model for classifying RNA sequences.
+The model incorporates convolutional layers, pooling layers, fully connected layers, and dropout regularization
+to learn representations and make predictions.
+'''
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
