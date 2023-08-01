@@ -1,4 +1,5 @@
 import sys
+from encoding_util import ONE_HOT
 from model_trainer import train
 from experimenter import model_rna_compete_predictions, log_training_results
 from data_util import create_rna_seqs_tensor
@@ -7,21 +8,21 @@ import numpy as np
 
 CHOSEN_CONFIG = { # TODO change me to the final configuration you found!
     'mode': 'HIGH',
-    'set_size': 100,
-    'embedding_dim': 5,
-    'kernel_batch_normalization': True,
-    'network_batch_normalization': True,
-    'kernel_size': 9,
+    'set_size': 1000000,
+    'embedding_dim': ONE_HOT,
+    'kernel_batch_normalization': False,
+    'network_batch_normalization': False,
+    'kernel_size': 5,
     'stride': 1,
-    'kernels_out_channel': 250,
+    'kernels_out_channel': 800,
     'pooling_size': 'Global',
     'dropout_rate': 0,
-    'hidden_layers': [64, 32],
-    'num_epochs': 3,
-    'batch_size': 32,
-    'learning_rate': 0.01,
-    'l1': 0.01,
-    'l2': 0.02
+    'hidden_layers': [800],
+    'num_epochs': 2,
+    'batch_size': 64,
+    'learning_rate': 0.001,
+    'l1': 0,
+    'l2': 0
 }
 
 RESULT_FILE = 'result.txt'
