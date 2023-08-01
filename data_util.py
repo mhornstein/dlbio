@@ -1,3 +1,9 @@
+'''
+This utility script provides a collection of functions for data preprocessing tasks.
+These functions are designed to handle various aspects of data preparation, particularly for RBNS or RNCMPT files.
+The functionalities encompass locating the necessary files, loading the sequences, applying padding, encoding the data, and more.
+'''
+
 import re
 import os
 import numpy as np
@@ -16,17 +22,26 @@ def get_files_with_prefix(dir, file_prefix):
     return files_paths
 
 def get_RBNS_files_for_protein(dir, protein_index):
+    '''
+    Returns all RBNS-files' paths in dir that are relevant to protein with number of protein_index
+    '''
     file_prefix = f'RBP{protein_index}_'
     files = get_files_with_prefix(dir, file_prefix)
     return files
 
 def get_rncmpt_file_for_protein(rncmpt_training_file_list, protein_index):
+    '''
+    Returns the rncmpt-file in rncmpt_training_file_list that is relevant to protein with number of protein_index
+    '''
     file_prefix = f'RBP{protein_index}.'
     files = get_files_with_prefix(rncmpt_training_file_list, file_prefix)
     file = files[0]
     return file
 
 def load_rna_compete(rna_compete_filename):
+    '''
+    Returns a list of sequences read from the given rna_compete_filename
+    '''
     seqs = []
     with open(rna_compete_filename) as f:
         for line in f:
@@ -36,15 +51,25 @@ def load_rna_compete(rna_compete_filename):
     return seqs
 
 def create_rna_seqs_tensor(rna_compete_filename):
+    '''
+    Returns a list of padded and encoded sequences, read from the given rna_compete_filename
+    '''
     rna_seqs = load_rna_compete(rna_compete_filename)
     rna_seqs = pad_samples(rna_seqs, MAX_SAMPLE_LENGTH, PADDING_CHAR)
     encoded_seq = encode_sequence_list(rna_seqs, C2I)
     return encoded_seq
 
 def load_intensities_file(intensities_filename):
+    '''
+    return a datafrane containing the intensities as saved in the format of the RNCMPT files
+    '''
     return pd.read_csv(intensities_filename, header=None)[0].values
 
 def get_file_number(file_path):
+    '''
+    Extract the protein number from file_path string (representing a path of RBNS file)
+    For input file, the returned number is 0
+    '''
     file_name = os.path.basename(file_path)
     if 'input' in file_name:
         return 0
@@ -53,6 +78,9 @@ def get_file_number(file_path):
         return int(numeric_value)
 
 def read_samples(file_path, num_of_samples):
+    '''
+    Returns a list of num_of_samples sequences read from the given RBNS file saved under file_path
+    '''
     lines = []
     count = 0
     with open(file_path, 'r') as f:
@@ -64,6 +92,10 @@ def read_samples(file_path, num_of_samples):
     return lines
 
 def create_positive_dataset(filesnames, mode, set_size):
+    '''
+    Returns a list of set_size positive samples loaded from the files in the list filesnames
+    according to the mode policy for creating the positive dataset
+    '''
     dataset = []
     total_consentrations = sum([get_file_number(file_path) for file_path in filesnames])
     if mode == 'WEIGHTED_HIGH':
@@ -95,11 +127,10 @@ def create_positive_dataset(filesnames, mode, set_size):
         raise ValueError(f'Unknown mode: {mode}')
     return dataset
 
-def shuffle_samples(samples):
-    shuffled_seqs = [''.join(np.random.permutation(list(seq))) for seq in samples]
-    return shuffled_seqs
-
 def encode_sequence_list(seq_list, c2i):
+    '''
+    encodes tha sequences in seq_list according to the encoding that appears in c2i
+    '''
     encoded_seqs = []
     for seq in seq_list:
         encoded_seq = [c2i[ch] for ch in seq]
@@ -108,6 +139,10 @@ def encode_sequence_list(seq_list, c2i):
     return tensor
 
 def pad_samples(samples, max_length, padding_char):
+    '''
+    Pad the samples in the samples list to be of length max_length.
+    The padding is done by adding padding_char at the end of the sequences.
+    '''
     padded_samples = list(map(lambda s: s[:max_length].ljust(max_length, padding_char), samples))
     return padded_samples
 
