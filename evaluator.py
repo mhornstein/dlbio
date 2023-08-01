@@ -16,9 +16,9 @@ The script general flow is:
 5. Create results file.
 
 Results:
-A model will be trained according to the RBNs files.
-The progress will be displayed in the console.
-The prediction probabilities (i.e. the scores) will be written to the generated scores.txt file.
+* A model will be trained according to the RBNs files.
+* The progress will be displayed in the console.
+* The prediction probabilities (i.e. the scores) will be written to the generated scores.txt file.
 '''
 
 import sys
