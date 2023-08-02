@@ -1,6 +1,6 @@
 '''
 This script automates the process of conducting experiments with various neural networks configurations.
-It runs a given number of experiments, in each - a random configuration and an RBP are sampled.
+It runs a given number of experiments, in each - a random configuration and an RBP are sampled out of the training-RBPs, i.e. RBP 1-16.
 The training and evaluation results of each experiment are recorded.
 
 Usage:
@@ -89,7 +89,8 @@ def draw_experiment_config():
         'batch_size': batch_size,
         'learning_rate': learning_rate,
         'l1': l1,
-        'l2': l2
+        'l2': l2,
+        'measure_performance': True
     }
     return config
 

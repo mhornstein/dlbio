@@ -15,7 +15,7 @@ import torch
 import pandas as pd
 
 EPS = 1e-12
-MAX_EXPERIMENT_TIME_IN_MINUTES = 45
+MAX_EXPERIMENT_TIME_IN_MINUTES = 60
 
 def create_data_loader(X, y, batch_size, shuffle):
     '''
@@ -77,7 +77,8 @@ def calc_scores(dataloader, model, loss_function, l1):
 def train(
         rbns_files, mode, set_size,  # data parameters
         embedding_dim, kernel_size, stride, kernels_out_channel, pooling_size, dropout_rate, hidden_layers, kernel_batch_normalization, network_batch_normalization,  # model parameters
-        num_epochs, batch_size, learning_rate, l1, l2  # training parameters
+        num_epochs, batch_size, learning_rate, l1, l2,  # training parameters
+        measure_performance # performance measuring parameters
     ):
     '''
     This function trains a CNN model on RBNS data for competing prediction.
@@ -100,6 +101,7 @@ def train(
         learning_rate (float): The learning rate used for weight updates during optimization.
         l1 (float): The strength of L1 regularization.
         l2 (float): The strength of L2 regularization.
+        measure_performance (boolean): When true, train and validaion sets accuracy and loss will be evaluated and logged. When false - they will appear as None.
 
     Returns:
         model (torch.nn.Module): The trained CNN model
@@ -133,9 +135,12 @@ def train(
     experiment_start_time = time.time()
 
     # First - add the initial results of the model (so we'll know what the base-line is)
-    model.eval()
-    train_loss, train_acc = calc_scores(train_dataloader, model, loss_function, l1)
-    val_loss, val_acc = calc_scores(val_dataloader, model, loss_function, l1)
+    if measure_performance:
+        model.eval()
+        train_loss, train_acc = calc_scores(train_dataloader, model, loss_function, l1)
+        val_loss, val_acc = calc_scores(val_dataloader, model, loss_function, l1)
+    else:
+        train_loss = train_acc = val_loss = val_acc = None
 
     result_entry = {'epoch': 0,
                     'train_loss': train_loss,
@@ -168,9 +173,12 @@ def train(
             loss.backward()
             optimizer.step()
 
-        model.eval()
-        train_loss, train_acc = calc_scores(train_dataloader, model, loss_function, l1)
-        val_loss, val_acc = calc_scores(val_dataloader, model, loss_function, l1)
+        if measure_performance:
+            model.eval()
+            train_loss, train_acc = calc_scores(train_dataloader, model, loss_function, l1)
+            val_loss, val_acc = calc_scores(val_dataloader, model, loss_function, l1)
+        else:
+            train_loss = train_acc = val_loss = val_acc = None
 
         epoch_time = time.time() - epoch_start_time
 
