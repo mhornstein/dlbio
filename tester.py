@@ -41,12 +41,16 @@ def get_rbps_indexes_from_dir(rbns_testing_dir):
     return indexes
 
 if __name__ == '__main__':
-    start_time = time.time()
+    if len(sys.argv) < 4:
+        print('Some arguments are missing. Please read the README file carefully.')
+        sys.exit(1)
+
     rna_compete_file = sys.argv[1]
     rbns_testing_dir = sys.argv[2]
     results_dir = sys.argv[3]
     train_result_path = f'{results_dir}/train_result'
 
+    start_time = time.time()
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
 
@@ -59,7 +63,7 @@ if __name__ == '__main__':
     for protein_index in indexes:
         print(f'Testing protein {protein_index}')
         rbns_files_list = get_RBNS_files_for_protein(rbns_testing_dir, protein_index)
-        predictions_file_path = f'{results_dir}\\RBP{protein_index}.txt'
+        predictions_file_path = f'{results_dir}/RBP{protein_index}.txt'
         evaluature_RBP(config=CHOSEN_CONFIG, rna_seqs_tensor=rna_seqs_tensor, rbns_files_list=rbns_files_list,
                        predictions_file_path=predictions_file_path, train_result_path=f'{train_result_path}/{protein_index}')
         print()
