@@ -1,6 +1,6 @@
 '''
-This script automates the process of conducting experiments with various configurations.
-It runs the given number of experiments, in each a random configuration for a neural network and an RBP are sampled.
+This script automates the process of conducting experiments with various neural networks configurations.
+It runs a given number of experiments, in each - a random configuration and an RBP are sampled.
 The training and evaluation results of each experiment are recorded.
 
 Usage:
@@ -12,11 +12,11 @@ python experimenter.py ./data/RNAcompete_sequences.txt ./data/RBNS_training ./da
 Results:
 * The progress will be displayed in the console.
 * A "result" directory will be created (if not already existed). It will contain the following:
-    - measurements.csv – a CSV file logging each experiment ID, the sampled network configuration, and the experiment results (loss, accuracy, time, etc).
+    - measurements.csv – a CSV file logging each experiment ID, the sampled configuration, and the experiment results (loss, accuracy, time, etc).
     - A directory for each experiment ID – containing accuracy and loss graphs, as well as the raw training results data.
 Note: If you wish to conduct more experiments, simply re-run the experimenter.py again: It will fetch the last experiment ID from the measurements.csv and continue from there.
 '''
-
+import sys
 import time
 import psutil
 import os
@@ -31,7 +31,6 @@ from data_util import create_rna_seqs_tensor, load_intensities_file, get_RBNS_fi
 from scipy.stats import pearsonr
 from encoding_util import ONE_HOT
 
-EXPERIMENT_COUNT = 100000
 OUT_DIR = 'results'
 MEASUREMENTS_FILE = f'{OUT_DIR}/measurements.csv'
 MEASUREMENTS_HEADER =   ['exp_id',
@@ -205,10 +204,14 @@ def to_train_config(experiment_config, rbns_training_dir):
     return train_config
 
 if __name__ == '__main__':
-    # This 3 paths are the scripts arguments TODO move to argv
-    rna_compete_file = './data/RNAcompete_sequences.txt'
-    rbns_training_dir = './data/RBNS_training'
-    rncmpt_training_dir = './data/RNCMPT_training'
+    if len(sys.argv) < 5:
+        print('Some arguments are missing. Please read the README file carefully.')
+        sys.exit(1)
+
+    rna_compete_file = sys.argv[1]
+    rbns_training_dir = sys.argv[2]
+    rncmpt_training_dir = sys.argv[3]
+    experiments_count = int(sys.argv[4])
 
     # First, read and convert RNA sequences to tensor
     rna_seqs_tensor = create_rna_seqs_tensor(rna_compete_file)
@@ -227,7 +230,7 @@ if __name__ == '__main__':
         start_exp_id = 1 if len(df['exp_id']) == 0 else df['exp_id'].max() + 1
 
     # Last - start experimenting!
-    for exp_id in range(start_exp_id, start_exp_id + EXPERIMENT_COUNT):
+    for exp_id in range(start_exp_id, start_exp_id + experiments_count):
 
         # 1 - draw configuration
         experiment_config = draw_experiment_config()
@@ -247,7 +250,7 @@ if __name__ == '__main__':
         memory_usage = psutil.virtual_memory().percent - start_memory_usage
 
         # 3 - when training ends - log train results
-        log_training_results(results_df=training_results_df, path=f'{OUT_DIR}\{exp_id}')
+        log_training_results(results_df=training_results_df, path=f'{OUT_DIR}/{exp_id}')
 
         # 4 - calculate the pearson correlation with the rncmpt gold scores
         predictions = model_rna_compete_predictions(model, rna_seqs_tensor)
