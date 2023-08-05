@@ -8,7 +8,7 @@ The scripts and their purpose are:
 It runs a given number of experiments, in each - a random configuration and an RBP are sampled out of the training-RBPs, i.e. RBP 1-16.
 The training and evaluation results of each experiment are recorded.
 3. testet.py: used for training and conducting predictions using the chosen neural network configuration for a set of RBPs.
-4. corr_plotter.py: small utility script for calculating and visualizing the correlations between RBPs' intensities and the predictions.
+4. corr_plotter.py: small utility script for calculating and visualizing the correlations between RBPs' gold intensities and the predictions.
 
 This scripts all use Pytorch, so Pytorch warnings might be presented to the console as well as the scripts output.
 
@@ -74,18 +74,24 @@ Link for output example:
 corr_plotter.py
 ---------------
 Usage:
-python corr_plotter.py [directory for train-set gold intensities] [directory to predicted train-set intensitied] [results_dir]
+python corr_plotter.py [path to gold-scores directory] [path to predicted-scores directory] [results directory]
 
 example:
-corr_plotter.py .\data\RNCMPT_training .\train_set_results corr_results
-
+python corr_plotter.py data/RNCMPT_training train_set_results corr_report
 where:
-data\RNCMPT_training – was provided as part of the assignment.
-train_set_results – is the output directory of the testet.py script.
+data/RNCMPT_training – was provided as part of the assignment.
+train_set_results – is the output directory of the tester.py script.
+
+Explainations about the parameters:
+* path to gold-scores directory: A string representing the directory path where the gold (actual) scores for the RNCMPT training data are stored.
+It should contain files of the form RBP1.txt...RBP16.txt.
+* path to predicted-scores directory: A string representing the directory path where the predicted scores for the RNCMPT training data are stored.
+These predicted scores are the output of the model's predictions for the training data. They can be created using the tester.py script.
+It should contain files of the same form as gold_dir, i.e. RBP1.txt...RBP16.txt.
+* results directory: The directory where the results should be saved.
 
 Results:
-An output file named correlation_data.csv will be generated in the corr_results directory, along with the box-plot image.
-Note: the script assumes that both directories have the same RBPs files.
+The result will contain a CSV containing the correlation scores and a corresponding box plot.
 
 Requirements
 ------------
