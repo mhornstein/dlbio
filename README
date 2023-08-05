@@ -97,3 +97,9 @@ Requirements
 ------------
 The necessary libraries that need to be installed are listed in the requirements.txt file. You can install all by using pip install.
 Note: We use the slim version of Pytorch as we ran the scripts only on machines that do not have GPUs.
+
+Tests
+-----
+All code was tourouly ran and tested on:
+* Windows machine with Python 3.10.8.
+* Unix machine with Python 3.9.2.
