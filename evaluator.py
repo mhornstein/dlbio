@@ -39,7 +39,7 @@ CHOSEN_CONFIG = {
     'pooling_size': 'Global',
     'dropout_rate': 0,
     'hidden_layers': [800],
-    'num_epochs': 3,
+    'num_epochs': 2,
     'batch_size': 64,
     'learning_rate': 0.001,
     'l1': 0,
