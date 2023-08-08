@@ -1,5 +1,5 @@
 This repository contains 4 scripts.
-We were asked to provide mainly the first one (evaluator.py) - it is operates according to the assigment requirements, and further explainations about its operation is provided next.
+We were asked to provide mainly the first one (evaluator.py) - it is operates according to the assigment requirements, and further explainations about its operation is provided next. Note that it uses code imported from the other code-files submitted, so please make sure they appear in the same directory upon execution.
 
 However, we also provide all the code we made use of as part of the content of this project, along with instructions how to run each.
 
