@@ -1,6 +1,7 @@
 This repository contains 4 scripts.
-We were asked to provide mainly the first one (evaluator.py),
-yet we provide all the code we made use of as part of the content of this project, along with instructions how to run each.
+We were asked to provide mainly the first one (evaluator.py) - it is operates according to the assigment requirements, and further explainations about its operation is provided next.
+
+However, we also provide all the code we made use of as part of the content of this project, along with instructions how to run each.
 
 The scripts and their purpose are:
 1. evaluator.py: used for training and evaluating the chosen neural networks architecture for an *individual* RBP.
