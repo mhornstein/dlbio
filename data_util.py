@@ -74,7 +74,7 @@ def get_file_number(file_path):
     if 'input' in file_name:
         return 0
     else:
-        numeric_value = re.search(r'_(\d+)n', file_name).group(1)
+        numeric_value = re.search(r'_(\d+)([np])', file_name).group(1)
         return int(numeric_value)
 
 def read_samples(file_path, num_of_samples):
