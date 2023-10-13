@@ -4,6 +4,8 @@ The main script is `evaluator.py`, which operates according to the assignment re
 
 However, we also provide all the code we made use of as part of the content of this project, along with instructions on how to run each.
 
+Please refer to the "Report.pdf" file for comprehensive explanations and details of all the experiments and their results.
+
 # Scripts and Their Purpose
 
 1. `evaluator.py`: used for training and evaluating the chosen neural networks architecture for an *individual* RBP.
